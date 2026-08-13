@@ -1,0 +1,309 @@
+/* ==========================================================================
+   ENGINES & HARNESSES — deck theme
+   A shop manual for language models: near-black ground, instrument amber
+   for the engine half, harness teal for the tooling half, spec-plate type.
+   Display: Barlow Condensed · Body: Inter · Labels/code: JetBrains Mono
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter Var";
+  src: url("../vendor/fonts/inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("../vendor/fonts/barlow-condensed-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("../vendor/fonts/barlow-condensed-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono Var";
+  src: url("../vendor/fonts/jetbrains-mono.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #0b0e14;
+  --bg-raise: #11161f;
+  --surface: #151b27;
+  --line: #232c3d;
+  --ink: #e8eaf2;
+  --muted: #8b95a9;
+  --faint: #5c6577;
+  --amber: #ffb454;      /* engine */
+  --amber-dim: #b97e2e;
+  --teal: #5ccfe6;       /* harness */
+  --teal-dim: #3d93a5;
+  --hot: #f07178;        /* warnings, context rot */
+  --green: #aad94c;      /* the "after", the win */
+  --acc: var(--amber);   /* per-act accent, overridden by section class */
+  --acc-dim: var(--amber-dim);
+
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Inter Var", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono Var", "Cascadia Code", Consolas, monospace;
+}
+
+/* ---- ground ---- */
+html, body { background: var(--bg); }
+.reveal-viewport { background: var(--bg); }
+.reveal { font-family: var(--body); font-size: 30px; font-weight: 400;
+  color: var(--ink); letter-spacing: 0.005em; }
+.reveal ::selection { background: var(--acc); color: var(--bg); }
+
+/* subtle blueprint grid on the ground */
+.reveal-viewport {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 90px 90px;
+  background-position: center;
+}
+.reveal .slides { text-align: left; }
+
+/* ---- act accent keying: engine acts amber, harness acts teal ---- */
+section.act-engine, section.act-engine section { --acc: var(--amber); --acc-dim: var(--amber-dim); }
+section.act-harness, section.act-harness section { --acc: var(--teal); --acc-dim: var(--teal-dim); }
+
+/* ---- headings ---- */
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+  margin: 0 0 0.5em 0;
+}
+.reveal h1 { font-size: 3.4em; line-height: 0.95; }
+.reveal h2 { font-size: 1.9em; line-height: 1.0; margin-bottom: 0.6em; }
+.reveal h3 { font-size: 1.25em; color: var(--acc); }
+.reveal p, .reveal li { line-height: 1.5; }
+.reveal p { margin: 0 0 0.7em 0; }
+.reveal strong { font-weight: 650; color: #fff; }
+.reveal em { color: var(--acc); font-style: normal; }
+.reveal a { color: var(--teal); text-decoration: none; border-bottom: 1px solid var(--teal-dim); }
+.reveal a:hover { color: #9fe6f5; }
+
+/* ---- mono eyebrow / spec labels ---- */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.55em;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin-bottom: 1.4em;
+  display: block;
+}
+.eyebrow::before { content: "// "; color: var(--faint); }
+
+/* ---- act spec-plate (section opener) ---- */
+.plate { padding-top: 0.5em; }
+.plate h1 { font-size: 4.2em; }
+.plate .plate-sub {
+  font-size: 1.05em; color: var(--muted); max-width: 22em; line-height: 1.45;
+  border-top: 1px solid var(--line); padding-top: 0.9em; margin-top: 0.9em;
+}
+.plate .plate-sub strong { color: var(--ink); }
+
+/* ---- lists ---- */
+.reveal ul, .reveal ol { display: block; margin: 0 0 0.7em 0; }
+.reveal ul li, .reveal ol li { margin: 0.35em 0; }
+.reveal ul { list-style: none; padding-left: 1.1em; }
+.reveal ul li::before {
+  content: "▸"; color: var(--acc); display: inline-block;
+  width: 1.1em; margin-left: -1.1em; font-size: 0.85em;
+}
+.reveal ol { padding-left: 1.4em; }
+.reveal ol li::marker { color: var(--acc); font-family: var(--mono); font-size: 0.85em; }
+
+/* ---- code ---- */
+.reveal pre {
+  width: 100%; margin: 0.5em 0; box-shadow: none;
+  font-size: 0.52em; line-height: 1.45;
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--acc);
+}
+.reveal pre code {
+  font-family: var(--mono); background: transparent;
+  padding: 0.9em 1.1em; max-height: 560px;
+}
+.reveal code {
+  font-family: var(--mono); font-size: 0.92em;
+  background: var(--surface); border: 1px solid var(--line);
+  padding: 0.05em 0.35em; color: var(--amber);
+}
+.reveal pre code, .reveal pre code * { color: #cfd6e4; }
+/* keep monokai's token colors but on our surface */
+.hljs { background: transparent !important; }
+.act-harness .reveal code { color: var(--teal); }
+section.act-harness code { color: var(--teal); }
+
+/* filename caption above a code block */
+.filename {
+  font-family: var(--mono); font-size: 0.5em; color: var(--muted);
+  letter-spacing: 0.08em; margin: 0.6em 0 -0.4em 0;
+}
+.filename::before { content: "▤ "; color: var(--acc); }
+
+/* ---- layout helpers ---- */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; align-items: start; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1em; align-items: start; }
+.cols-wide-left { display: grid; grid-template-columns: 3fr 2fr; gap: 1.2em; align-items: start; }
+
+.panel {
+  background: var(--bg-raise); border: 1px solid var(--line);
+  padding: 0.8em 1em; margin: 0.4em 0;
+}
+.panel.hl { border-color: var(--acc-dim); background: var(--surface); }
+.panel h3 { margin-bottom: 0.3em; }
+.panel p:last-child, .panel ul:last-child { margin-bottom: 0; }
+
+.note { font-size: 0.62em; color: var(--muted); line-height: 1.45; }
+.note a { border-bottom-width: 1px; }
+
+.tag {
+  display: inline-block; font-family: var(--mono); font-size: 0.5em;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--bg);
+  background: var(--acc); padding: 0.25em 0.7em; margin-right: 0.5em;
+  font-weight: 600; vertical-align: middle;
+}
+.tag.ghost { background: transparent; color: var(--acc); border: 1px solid var(--acc-dim); }
+.tag.hot { background: var(--hot); }
+.tag.green { background: var(--green); }
+
+/* opinion flag — the brief demands opinion be visibly flagged */
+.opinion-flag {
+  font-family: var(--mono); font-size: 0.55em; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--bg); background: var(--hot);
+  display: inline-block; padding: 0.3em 0.8em; font-weight: 700;
+  margin-bottom: 1em;
+}
+
+/* ---- big numbers (scale act) ---- */
+.big-num {
+  font-family: var(--display); font-weight: 700; font-size: 3.6em;
+  line-height: 0.95; color: var(--acc);
+  font-variant-numeric: tabular-nums;
+}
+.big-num small { font-size: 0.32em; color: var(--muted); font-family: var(--body); font-weight: 400; display: block; margin-top: 0.4em; letter-spacing: 0; }
+
+/* ---- tables ---- */
+.reveal table { border-collapse: collapse; margin: 0.4em 0; font-size: 0.68em; width: 100%; }
+.reveal table th {
+  font-family: var(--mono); font-size: 0.75em; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--acc); font-weight: 600;
+  text-align: left; padding: 0.5em 0.8em; border-bottom: 2px solid var(--acc-dim);
+}
+.reveal table td {
+  padding: 0.5em 0.8em; border-bottom: 1px solid var(--line);
+  vertical-align: top; line-height: 1.4;
+}
+.reveal table tr:last-child td { border-bottom: none; }
+.reveal table td:first-child { color: #fff; font-weight: 550; }
+
+/* ---- demo embeds ---- */
+.demo-bar {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--mono); font-size: 0.5em; color: var(--muted);
+  border: 1px solid var(--line); border-bottom: none;
+  background: var(--bg-raise); padding: 0.55em 1em; letter-spacing: 0.05em;
+}
+.demo-bar a { color: var(--acc); border-bottom: none; font-weight: 600; }
+.demo-bar a::after { content: " ↗"; }
+.reveal iframe.demo {
+  width: 100%; border: 1px solid var(--line); background: #fff; display: block;
+}
+
+/* fallback card for non-embeddable demos */
+.demo-card {
+  display: block; border: 1px solid var(--line); background: var(--bg-raise);
+  padding: 1em 1.2em; margin: 0.5em 0; text-decoration: none;
+  border-left: 3px solid var(--acc);
+}
+.demo-card:hover { background: var(--surface); border-left-color: #fff; }
+a.demo-card { border-bottom: none; }
+.demo-card .demo-title {
+  font-family: var(--display); font-weight: 700; font-size: 1.15em;
+  color: var(--ink); display: block;
+}
+.demo-card .demo-desc { color: var(--muted); font-size: 0.68em; display: block; margin-top: 0.2em; line-height: 1.4; }
+.demo-card .demo-url {
+  font-family: var(--mono); font-size: 0.5em; color: var(--acc);
+  display: block; margin-top: 0.55em; letter-spacing: 0.04em;
+}
+.demo-card .demo-url::after { content: " ↗"; }
+
+/* ---- before/after ---- */
+.ba .panel.before { border-left: 3px solid var(--hot); }
+.ba .panel.after { border-left: 3px solid var(--green); }
+.ba .ba-label {
+  font-family: var(--mono); font-size: 0.55em; letter-spacing: 0.18em;
+  text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5em;
+}
+.ba .before .ba-label { color: var(--hot); }
+.ba .after .ba-label { color: var(--green); }
+
+/* ---- inline flow diagrams (text-based) ---- */
+.flow {
+  font-family: var(--mono); font-size: 0.62em; color: var(--ink);
+  background: var(--bg-raise); border: 1px solid var(--line);
+  padding: 0.9em 1.1em; line-height: 1.7; white-space: pre; overflow-x: auto;
+}
+.flow b { color: var(--acc); font-weight: 600; }
+
+/* ---- blockquotes: vendor doctrine ---- */
+.reveal blockquote {
+  width: 100%; margin: 0.6em 0; padding: 0.7em 1.1em;
+  background: var(--bg-raise); border: none; border-left: 3px solid var(--acc);
+  box-shadow: none; font-style: normal; font-size: 0.85em; line-height: 1.5;
+}
+.reveal blockquote cite {
+  display: block; font-family: var(--mono); font-style: normal;
+  font-size: 0.6em; color: var(--muted); margin-top: 0.6em; letter-spacing: 0.06em;
+}
+.reveal blockquote cite::before { content: "— "; color: var(--acc); }
+
+/* ---- kbd ---- */
+.kbd {
+  font-family: var(--mono); font-size: 0.8em; background: var(--surface);
+  border: 1px solid var(--faint); border-bottom-width: 3px; padding: 0.1em 0.5em;
+  color: var(--ink);
+}
+
+/* ---- footer attribution on title ---- */
+.byline { font-family: var(--mono); font-size: 0.55em; color: var(--muted); letter-spacing: 0.1em; }
+.byline b { color: var(--acc); font-weight: 600; }
+
+/* ---- reveal chrome ---- */
+.reveal .progress { height: 4px; color: var(--acc); }
+.reveal .progress span { background: var(--acc); }
+.reveal .controls { color: var(--acc); }
+.reveal .slide-number {
+  font-family: var(--mono); font-size: 14px; color: var(--faint);
+  background: transparent; right: 16px; bottom: 10px;
+}
+
+/* fragments */
+.reveal .fragment.highlight-current-blue.current-fragment { color: var(--teal); }
+
+/* ---- print / pdf export ---- */
+@media print {
+  html, body, .reveal-viewport { background: var(--bg) !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .reveal iframe.demo { display: none; }
+  .demo-bar { border: 1px solid var(--line); }
+}
