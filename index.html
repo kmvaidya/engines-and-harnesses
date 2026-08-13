@@ -23,7 +23,7 @@
         <h1>Engines &amp;<br>Harnesses</h1>
         <p class="plate-sub">How language models actually work — and how to build
         the machine around them. <strong>From neurons to harnesses.</strong></p>
-        <p class="byline">by <b>Kay</b> · august 2026 · a public artifact, not a one-shot deck</p>
+        <p class="byline">by <b>Kay</b> · august 2026 · slides, notes, and sources, all public</p>
         <aside class="notes">
           Open on this. One sentence: "This is a talk about engines and harnesses —
           the model, and everything we build around it." Then the claim: the second
@@ -34,7 +34,7 @@
 
       <section>
         <span class="eyebrow">how to drive this deck</span>
-        <h2>Built to be navigated, not narrated</h2>
+        <h2>Built for jumping around</h2>
         <div class="cols">
           <div class="panel">
             <h3>Live</h3>
@@ -74,9 +74,9 @@
           </div>
           <div class="panel"><h3>Deliberately out of scope</h3>
             <ul>
-              <li><strong>Fine-tuning</strong> — that's engine work, not ours</li>
-              <li><strong>RAG</strong> — the retrieval arm of context engineering; same principles</li>
-              <li><strong>Evals</strong> — the dyno you test the vehicle on; a talk of its own</li>
+              <li><strong>Fine-tuning</strong> (retraining the model itself) — engine work, not ours</li>
+              <li><strong>RAG</strong> (fetching documents into the prompt) — the same context principles apply</li>
+              <li><strong>Evals</strong> (testing whether any of this actually works) — deserves its own hour</li>
             </ul>
           </div>
         </div>
@@ -94,9 +94,9 @@
       <section class="plate">
         <span class="eyebrow">act 01 · the engine</span>
         <h1>How a pile of arithmetic<br>learned to talk</h1>
-        <p class="plate-sub">Seventy years of neural networks, told forward —
-        so that <strong>"AI" meaning "LLM"</strong> stops being confusing and
-        starts being inevitable.</p>
+        <p class="plate-sub">Seventy years of neural networks, told in order,
+        so that <strong>"AI" now meaning "language models"</strong> feels less
+        like a fad and more like the next chapter of one long story.</p>
         <aside class="notes">
           The long-breath act. If the audience knows ML basics, skim slides 2–3 and
           land on the timeline. If short on time: timeline slide only, then Act 2.
@@ -110,13 +110,13 @@
           <div>
             <ul>
               <li>Take numbers in, multiply each by a <strong>weight</strong>, add them up, squash the result</li>
-              <li>That's it. That's the neuron.</li>
-              <li>Stack them in layers: a <strong>multi-layer perceptron</strong></li>
+              <li>And that's the whole neuron; there is no hidden extra part</li>
+              <li>Stack them in layers and you have a network (the classic <strong>multi-layer perceptron</strong>)</li>
               <li class="fragment">The weights are the <strong>parameters</strong> —
                 "405B parameters" = 405 billion of these knobs</li>
             </ul>
-            <p class="fragment">A neural network is <em>one function</em>:
-            numbers in → numbers out. Everything else is plumbing.</p>
+            <p class="fragment">A neural network is <em>one big function</em>:
+            numbers in, numbers out. Everything else is plumbing.</p>
           </div>
           <div class="panel">
             <div class="flow">inputs      weights
@@ -154,8 +154,8 @@
           <li><strong>Nudge:</strong> compute, for every knob, which direction reduces the wrongness — turn all of them a hair (backpropagation)</li>
           <li><strong>Repeat:</strong> trillions of times, on trillions of examples</li>
         </ol>
-        <p class="fragment">Training doesn't store the examples — it <strong>compresses their
-        regularities into the knobs.</strong> That's why one function can complete code it
+        <p class="fragment">Training doesn't store the examples. It <strong>squeezes their
+        patterns into the knobs</strong> — which is why one function can complete code it
         has never seen.</p>
         <aside class="notes">
           Kill the "it's a database" mental model here, gently — it decides how
@@ -166,12 +166,12 @@
 
       <section>
         <span class="eyebrow">scores → probabilities</span>
-        <h2>Softmax and the temperature dial</h2>
+        <h2>From scores to odds: the temperature dial</h2>
         <div class="cols">
           <div>
             <p>A language model's last layer outputs a <strong>score for every token
-            it knows</strong>. Softmax turns scores into probabilities — that's the
-            whole trick.</p>
+            it knows</strong>. A step called softmax turns those scores into
+            probabilities, and that's the whole trick.</p>
             <ul>
               <li><strong>Temperature ↓</strong> — sharpen: always take the favorite. Safe, boring, repetitive.</li>
               <li><strong>Temperature ↑</strong> — flatten: give the long shots a chance. Creative, and eventually unhinged.</li>
@@ -204,7 +204,7 @@
           <tr><td>2012</td><td>AlexNet</td><td>GPUs + data beat forty years of hand-built features</td></tr>
           <tr><td>2017</td><td><em>Attention Is All You Need</em></td><td>One architecture for all of language — and it parallelizes</td></tr>
           <tr><td>2018–20</td><td>GPT-1 → GPT-3</td><td>Same recipe + more scale = new abilities, unprompted</td></tr>
-          <tr><td>2022</td><td>ChatGPT</td><td>Next-token prediction, worn as a product, eats the word "AI"</td></tr>
+          <tr><td>2022</td><td>ChatGPT</td><td>Next-token prediction becomes a product — and "AI" starts meaning this</td></tr>
           <tr><td>2024–</td><td>Reasoning models</td><td>The same engine, allowed to think before speaking</td></tr>
         </table>
         <p class="fragment note">Every row is the same story: <strong>less hand-engineering,
@@ -248,9 +248,9 @@
       <section class="plate">
         <span class="eyebrow">act 02 · tokens</span>
         <h1>The model's alphabet<br>is not your alphabet</h1>
-        <p class="plate-sub">Half of all "LLMs are dumb" stories are
-        <strong>tokenizer stories</strong>. Five minutes here buys years of
-        not being confused.</p>
+        <p class="plate-sub">The tokenizer is the chopper that turns your text into
+        chunks before the model ever sees it. Half of all "LLMs are dumb" stories
+        are really <strong>tokenizer stories</strong>.</p>
         <aside class="notes">
           If short on time: the Tiktokenizer demo + the attention slide are the two
           that must survive.
@@ -302,7 +302,7 @@
         <span class="eyebrow">meaning as geometry</span>
         <h2>Every token becomes a point in space</h2>
         <ul>
-          <li>Each token maps to a vector — hundreds of numbers, learned, not assigned</li>
+          <li>Each token maps to a vector: a list of hundreds of numbers, learned during training rather than assigned by anyone</li>
           <li>Similar meaning ends up <strong>nearby</strong>: king/queen, Paris/Rome, <code>try</code>/<code>catch</code></li>
           <li>Directions mean things: king − man + woman ≈ queen</li>
         </ul>
@@ -326,8 +326,8 @@
           <li>Each slot gets a distinct stamp; nearby slots get similar stamps</li>
           <li>The network learns to read the stamp exactly as much as it needs to</li>
         </ul>
-        <p class="note">That's the honest intuition level. The gorgeous sinusoid math is in the
-        appendix — it's depth, not prerequisite.</p>
+        <p class="note">That's the intuition. The full math lives in the appendix; nothing
+        later depends on it.</p>
         <aside class="notes">
           One slide, on purpose. If someone pushes: "postmark on the envelope" —
           content plus where-it-was-mailed-from, in one vector. Appendix has RoPE etc.
@@ -348,7 +348,7 @@
           </div>
           <div>
             <ul>
-              <li>Dozens of attention heads per layer, each learning its own question — grammar, coreference, code scope…</li>
+              <li>Dozens of attention heads per layer, each learning its own question: grammar, which name a pronoun points back to, code scope…</li>
               <li class="fragment">And it's all matrix math — <strong>perfectly parallel, perfect for GPUs.</strong>
                 That, as much as the cleverness, is why transformers won.</li>
             </ul>
@@ -417,8 +417,8 @@
           <small>floating-point operations, per token, forward pass only —
           roughly one token ≈ three-quarters of a word</small>
         </div>
-        <p class="note" style="margin-top:1em">2N rule: Kaplan et al., <em>Scaling Laws for Neural Language
-        Models</em> (2020) · params official: Meta, arXiv:2407.21783 · full arithmetic in
+        <p class="note" style="margin-top:1em">The "two operations per parameter" rule: Kaplan et al., <em>Scaling Laws for Neural Language
+        Models</em> (2020) · parameter count official: Meta, arXiv:2407.21783 · full arithmetic in
         <a href="research/track3-flops.md">research/track3-flops.md</a></p>
         <aside class="notes">
           "Every parameter participates in every token." That's the sentence to say
@@ -448,7 +448,7 @@
 
       <section>
         <span class="eyebrow">training vertigo</span>
-        <h2>And that was just inference</h2>
+        <h2>And that was just running the model</h2>
         <ul>
           <li>Training Llama 3.1 405B: <strong>3.8×10²⁵ FLOPs</strong> over 15.6 trillion tokens
             <span class="note">(official, Meta)</span></li>
@@ -457,8 +457,8 @@
           <li class="fragment">GPT-4's training is estimated at the same order: ~2×10²⁵ FLOPs
             <span class="note">(Epoch AI estimate — OpenAI has disclosed nothing)</span></li>
         </ul>
-        <p class="fragment">This is why "just train your own" is not a sentence.
-        <strong>Engines come from foundries. Everyone else builds vehicles.</strong></p>
+        <p class="fragment">This is why "just train your own" isn't a real option.
+        <strong>Engines come from a handful of labs. Everyone else builds vehicles.</strong></p>
         <aside class="notes">
           The closing line is the bridge to the whole second half: you will never
           own the engine. Your leverage is downstream of it. If short on time, jump
@@ -487,9 +487,9 @@
           <tr><td>Llama 3.1 405B (dense)</td><td>405B</td><td>405B — all of them</td><td>8.1×10¹¹</td></tr>
           <tr><td>DeepSeek-V3 (MoE)</td><td>671B</td><td>37B — routed experts</td><td>7.4×10¹⁰ — <strong>11× cheaper</strong></td></tr>
         </table>
-        <p class="fragment">Mixture-of-experts is the trade of the era:
-        <strong>store many parameters, compute with few.</strong> More knowledge in the
-        warehouse, fewer workers per shift.</p>
+        <p class="fragment">"Mixture of experts" means only the relevant slice of the model
+        wakes up for each token — <strong>store many parameters, compute with few.</strong>
+        More knowledge in the warehouse, fewer workers per shift.</p>
         <p class="note">Official figures: arXiv:2412.19437. One more honest caveat: at 128K context,
         attention adds ~67% on top of the 2N cost — long context is not free. That fact returns in Act 7.</p>
         <aside class="notes">
@@ -524,7 +524,7 @@
            └─ scratch work, often hidden, always billed └─ what you asked for</div>
         <ul>
           <li>Still next-token prediction — nothing mystical was added</li>
-          <li>The model <strong>buys accuracy with extra forward passes</strong> before committing</li>
+          <li>The model <strong>buys accuracy by spending more compute up front</strong>, before committing to an answer</li>
           <li class="fragment">Wrong turns cost the same as right ones — dead-end reasoning is still billed</li>
         </ul>
         <aside class="notes">
@@ -555,11 +555,11 @@
 
       <section>
         <span class="eyebrow">depth · the third axis</span>
-        <h2>Test-time compute is a new scaling axis</h2>
+        <h2>"Think longer" became a third way to scale</h2>
         <ul>
           <li><strong>2012–2022:</strong> scale the training run — more data, more parameters</li>
-          <li><strong>2022–2024:</strong> scale the post-training — RLHF, instruction tuning</li>
-          <li><strong>2024–now:</strong> scale the <em>inference</em> — let the same weights think longer</li>
+          <li><strong>2022–2024:</strong> scale the <em>post-training</em> — the extra rounds where human feedback shapes the answers (RLHF, instruction tuning)</li>
+          <li><strong>2024–now:</strong> scale the <em>answering</em> — let the same model think longer on hard questions</li>
         </ul>
         <p class="fragment">The same model, given 10× the thinking budget, can jump a
         capability tier on hard problems — <strong>capability became a dial, not a constant.</strong></p>
@@ -592,15 +592,17 @@
         <span class="eyebrow">the consensus, roughly</span>
         <h2>Four things most of the field agrees on</h2>
         <ol>
-          <li><strong>Naive pre-training scaling has bent.</strong> The easy "10× the GPUs,
-            get a new era" curve flattened — data, not compute, became the binding wall</li>
-          <li class="fragment"><strong>The gains moved axes.</strong> Post-training (RL) and
-            test-time thinking now carry improvement — capability became a dial (Act 4)</li>
-          <li class="fragment"><strong>Agents are where it shows up.</strong> METR: the length of task
-            an agent can carry at 50% success <strong>doubles every ~4–7 months</strong> — and it's
-            accelerating, not saturating <span class="note">(metr.org, Time Horizon 1.1, Jan 2026)</span></li>
-          <li class="fragment"><strong>Cost per capability is collapsing.</strong> MoE, distillation,
-            efficient inference — yesterday's frontier is next year's cheap tier (Act 3's 11×)</li>
+          <li><strong>The easy scaling curve has bent.</strong> "10× the GPUs,
+            get a new era" stopped working — training data, not computing power, became the wall</li>
+          <li class="fragment"><strong>The gains moved elsewhere.</strong> Post-training and
+            thinking-time now carry the improvement — capability became a dial (Act 4)</li>
+          <li class="fragment"><strong>Agents are where it shows up.</strong> METR (an independent
+            evaluation lab): the length of task an agent can finish half the time
+            <strong>doubles every ~4–7 months</strong> — and the pace is picking up, not slowing
+            <span class="note">(metr.org, Time Horizon 1.1, Jan 2026)</span></li>
+          <li class="fragment"><strong>The price of any given ability keeps collapsing.</strong>
+            Efficiency tricks — mixture-of-experts, distillation (a small model trained to imitate
+            a big one) — make yesterday's frontier next year's cheap tier (Act 3's 11×)</li>
         </ol>
         <aside class="notes">
           Careful wording: "bent," not "ended." The METR line is the most
@@ -615,11 +617,11 @@
         <table>
           <tr><th>Axis</th><th>Status, honestly</th></tr>
           <tr><td>Pre-training (bigger runs)</td><td>Diminishing returns per dollar; data wall is real</td></tr>
-          <tr><td>Post-training (RL, distillation)</td><td>Steep and young — nobody knows the ceiling</td></tr>
+          <tr><td>Post-training (reinforcement learning, distillation)</td><td>Steep and young — nobody knows the ceiling</td></tr>
           <tr><td>Inference (thinking longer)</td><td>Scales per-task, priced per-use — a different economy entirely</td></tr>
         </table>
-        <p class="fragment">Any strong claim about "the end of scaling" that doesn't say
-        <strong>which curve</strong> is a vibe, not an argument.</p>
+        <p class="fragment">Any confident claim about "the end of scaling" that doesn't say
+        <strong>which curve</strong> is too vague to argue with.</p>
         <aside class="notes">
           This slide exists to inoculate the room before the opinion slide — and to
           keep me honest on it too.
@@ -700,7 +702,7 @@
       <section>
         <span class="eyebrow">the taxonomy</span>
         <h2>There is no one correct harness</h2>
-        <p>Motorcycles, cars, vans, and trucks are all correct. <strong>Shape is downstream of purpose.</strong></p>
+        <p>Motorcycles, cars, vans, and trucks are all correct. <strong>The shape follows the job.</strong></p>
         <table>
           <tr><th>Vehicle</th><th>The harness it maps to</th><th>Built for</th></tr>
           <tr><td>Motorcycle</td><td>Bare chat + one sharp tool</td><td>An expert going fast, fully exposed</td></tr>
@@ -709,9 +711,9 @@
           <tr><td>Truck</td><td>Autonomous coding agent in CI: issue in, pull request out</td><td>Heavy cargo, long haul, nobody in the cab</td></tr>
         </table>
         <aside class="notes">
-          Dwell on "shape is downstream of purpose" — it kills the "which setup is
+          Dwell on "the shape follows the job" — it kills the "which setup is
           best?" question before it's asked. Best for WHAT is the only version of
-          that question that parses.
+          that question that makes sense.
         </aside>
       </section>
 
@@ -756,9 +758,9 @@
         <div class="cols fragment">
           <div class="panel">
             <h3 style="color:var(--hot)">Compensation — shrinking</h3>
-            <p class="note" style="font-size:0.72em">Scaffolding that papers over engine weakness: few-shot walls,
-            forced step-by-step, rigid rule lists. 2023 needed it. 2026 engines are
-            <em>degraded</em> by it.</p>
+            <p class="note" style="font-size:0.72em">Prompt tricks that paper over engine weakness: walls of pasted
+            examples, forced step-by-step recipes, rigid rule lists. 2023 needed them. 2026 engines are
+            <em>degraded</em> by them.</p>
           </div>
           <div class="panel">
             <h3 style="color:var(--green)">Capability — growing</h3>
@@ -914,9 +916,9 @@ excludeAgent: "code-review"
         <div class="cols">
           <div>
             <ul>
-              <li>One markdown file, read by <strong>Copilot, Claude Code, Codex, Cursor, Gemini</strong> — the emerging lingua franca</li>
+              <li>One markdown file, read by <strong>Copilot, Claude Code, Codex, Cursor, Gemini</strong> — an emerging cross-tool standard</li>
               <li>Lives anywhere in the repo; <strong>nearest wins</strong> — monorepo teams put one per package</li>
-              <li>Copilot honors <code>CLAUDE.md</code> and <code>GEMINI.md</code> as equivalents — full cross-tool convergence</li>
+              <li>Copilot honors <code>CLAUDE.md</code> and <code>GEMINI.md</code> as equivalents, so one file travels everywhere</li>
             </ul>
           </div>
           <div class="panel">
@@ -1049,8 +1051,8 @@ description: Draft release notes from merged PRs. Use when asked
 }</code></pre>
         <ul>
           <li>The guard script returns <code>{"permissionDecision": "allow" | "deny" | "ask"}</code> —
-            <strong>deterministic code deciding what the model may do</strong></li>
-          <li class="fragment">Lifecycle events from session start to compaction; <code>preToolUse</code> fails <em>closed</em></li>
+            <strong>plain code, not the model, decides what the agent may do</strong></li>
+          <li class="fragment">Hooks fire at every stage of a session; if a <code>preToolUse</code> guard errors, the action is <em>blocked</em>, not waved through</li>
         </ul>
         <p class="note">New to Copilot in 2026, mirroring Claude Code's design — CLI + cloud agent, VS Code in preview.</p>
         <aside class="notes">
@@ -1130,9 +1132,9 @@ description: Draft release notes from merged PRs. Use when asked
       <section class="plate">
         <span class="eyebrow">act 07 · context engineering</span>
         <h1>The finite resource</h1>
-        <p class="plate-sub">What the model sees is all it is. Managing that —
-        not writing clever prompts — is the discipline now. <strong>And it changed
-        completely between model generations.</strong></p>
+        <p class="plate-sub">The model only knows what you put in front of it. Managing
+        that budget, not writing clever prompts, is the discipline now. <strong>And the
+        rules changed completely between model generations.</strong></p>
         <aside class="notes">
           Two movements: (1) context as a budget, (2) the generation shift — what
           you did for 2023 models vs what you do now. The second is the section
@@ -1187,12 +1189,12 @@ description: Draft release notes from merged PRs. Use when asked
         <span class="eyebrow">the generation shift · 2023 → 2026</span>
         <h2>Same discipline, unrecognizable rulebook</h2>
         <table style="font-size:0.56em">
-          <tr><th>You did this for 2023 engines</th><th>Frontier doctrine now says</th></tr>
-          <tr><td>“Think step by step” in every prompt</td><td>Unnecessary — reasoning models think internally; forced CoT is dead weight (OpenAI)</td></tr>
-          <tr><td>Walls of few-shot examples</td><td>“Examples actually constrain them to a certain exploration space” (Anthropic)</td></tr>
+          <tr><th>You did this for 2023 engines</th><th>The vendors' own guides now say</th></tr>
+          <tr><td>“Think step by step” in every prompt</td><td>Unnecessary — reasoning models already think internally; the instruction is dead weight (OpenAI)</td></tr>
+          <tr><td>Pasting in walls of worked examples ("few-shot")</td><td>“Examples actually constrain them to a certain exploration space” (Anthropic)</td></tr>
           <tr><td>“CRITICAL: You MUST use this tool when…”</td><td>“…you can use more normal prompting: ‘Use this tool when…’” — MUST-stacks now overtrigger</td></tr>
           <tr><td>“Before you finish, verify your answer against…”</td><td>Frontier models self-verify; leaving it in causes over-verification and wasted tokens</td></tr>
-          <tr><td>“You are an agent — keep going until fully resolved…”</td><td>Persistence scaffolding out; frontier models need damping, not spurring</td></tr>
+          <tr><td>“You are an agent — keep going until fully resolved…”</td><td>Drop it — frontier models need reining in, not spurring on</td></tr>
           <tr><td>Enumerate every rule and prohibition</td><td>“Write code that reads like the surrounding code” — rules become judgment</td></tr>
         </table>
         <p class="note">Every row traces to a vendor page, fetched Aug 2026 —
@@ -1261,17 +1263,17 @@ description: Draft release notes from merged PRs. Use when asked
           <div class="panel">
             <h3>Still true, every generation</h3>
             <ul style="font-size:0.8em">
-              <li>Clarity wins — the "new colleague test" never dies</li>
-              <li>Structure helps — headers, delimiters, XML tags</li>
+              <li>Clarity wins — if a new colleague couldn't follow your instructions, neither can the model</li>
+              <li>Structure helps — headers, delimiters, clearly marked sections</li>
               <li>Context is finite — rot didn't go away, it moved</li>
-              <li>Evals gate everything — "an empirical discipline" (OpenAI)</li>
+              <li>Measure everything — prompting is "an empirical discipline" (OpenAI)</li>
             </ul>
           </div>
           <div class="panel">
             <h3>The work didn't vanish — it moved</h3>
             <ul style="font-size:0.8em">
-              <li>From <em>making the model act</em> → <em>keeping it in scope</em></li>
-              <li>New calibration: damping over-verification, over-delegation, verbosity</li>
+              <li>From <em>pushing the model to act</em> to <em>keeping it in scope</em></li>
+              <li>The new tuning: reining in over-checking, over-delegating, and rambling</li>
               <li>Frontier quirks still need steering — just less of it, aimed differently</li>
             </ul>
           </div>
@@ -1288,7 +1290,7 @@ description: Draft release notes from merged PRs. Use when asked
         <h2>The two doctrines, honestly</h2>
         <table style="font-size:0.6em">
           <tr><th>Question</th><th>Anthropic</th><th>OpenAI</th></tr>
-          <tr><td>Multi-agent?</td><td>First-class: frontier models delegate natively (needs <em>damping</em>)</td><td>Last resort: "maximize a single agent's capabilities first"</td></tr>
+          <tr><td>Multi-agent?</td><td>First-class: frontier models delegate naturally (and need reining in, not spurring)</td><td>Last resort: "maximize a single agent's capabilities first"</td></tr>
           <tr><td>Migrating to a new model?</td><td>Audit and <strong>delete</strong> — "simplify just like we did"</td><td>Freeze prompts first, <strong>then</strong> tune — "switch models, don't change prompts yet"</td></tr>
           <tr><td>Prompt structure?</td><td>XML-native house style</td><td>Markdown-first, XML situational</td></tr>
           <tr><td>Agent frameworks?</td><td>Own the loop; frameworks obscure</td><td>Ships an SDK (a minimal one)</td></tr>
@@ -1323,9 +1325,10 @@ description: Draft release notes from merged PRs. Use when asked
       <section>
         <span class="eyebrow">the dirty secret</span>
         <h2>Benchmark scores measure systems, not models</h2>
-        <p>Same engine, different harness — measured deltas on SWE-bench:</p>
+        <p>SWE-bench is the standard "fix a real GitHub issue" test. Same engine,
+        different harness, and the score moves:</p>
         <table>
-          <tr><th>Same model, scaffold swapped</th><th>Score swing</th></tr>
+          <tr><th>Same model, different scaffold (the harness code around it)</th><th>Score swing</th></tr>
           <tr><td>GPT-4o, two scaffolds</td><td>23% → 33.2% <strong>(+10)</strong></td></tr>
           <tr><td>DeepSeek R1, scaffold switch</td><td>33% → 57.6% <strong>(+25)</strong></td></tr>
           <tr><td>Vendor harness vs standardized harness (2026 frontier)</td><td><strong>~17 points</strong> of vendor advantage</td></tr>
@@ -1349,9 +1352,9 @@ description: Draft release notes from merged PRs. Use when asked
         <h2>Which benchmarks still mean something</h2>
         <table style="font-size:0.62em">
           <tr><th>Benchmark</th><th>Measures</th><th>Aug 2026 read</th></tr>
-          <tr><td>SWE-bench Verified</td><td>Real GitHub issues → passing patch</td><td>Saturated (~96%, vendor-reported) and contaminated — <strong>retired as signal</strong></td></tr>
+          <tr><td>SWE-bench Verified</td><td>Real GitHub issues → passing patch</td><td>Maxed out (~96%, vendor-reported) and leaked into training data — <strong>no longer tells you anything</strong></td></tr>
           <tr><td>Terminal-Bench 2.1</td><td>Agent + terminal, real environments</td><td>Closest to day-to-day agent work; leaderboard shows model+scaffold pairs honestly</td></tr>
-          <tr><td>LiveCodeBench</td><td>Problems dated <em>after</em> training cutoff</td><td>Contamination-aware by design; narrow (contest code)</td></tr>
+          <tr><td>LiveCodeBench</td><td>Problems dated <em>after</em> training cutoff</td><td>Sidesteps the leak problem by design; narrow (contest code)</td></tr>
           <tr><td>Aider polyglot</td><td>Precise edit-format discipline</td><td>Honest but stale — top rows are 2025 models</td></tr>
           <tr><td>METR time horizons</td><td><strong>Length of task</strong> done at 50% success</td><td>Best mental model we have — currently doubling every ~4–7 months</td></tr>
         </table>
@@ -1397,9 +1400,9 @@ description: Draft release notes from merged PRs. Use when asked
           <tr><td>Gnarly debugging, planning</td><td>Frontier reasoning model</td><td>Quality of thought — pay the multiplier</td></tr>
           <tr><td>Long agent runs, issue → PR</td><td>Frontier + your best harness</td><td>The harness — it's worth 10–25 points</td></tr>
         </table>
-        <p class="fragment">And the only benchmark that predicts <em>your</em> Tuesday:
-        <strong>run two models on the same real task in your own repo.</strong> One afternoon,
-        better data than every leaderboard combined.</p>
+        <p class="fragment">And the only benchmark that predicts <em>your own work</em>:
+        <strong>run two models on the same real task in your own repo.</strong> One afternoon
+        of that beats every leaderboard combined.</p>
         <p class="note">Copilot reality, Aug 2026: billing is <strong>AI credits</strong>
         (1 credit = $0.01, priced per token per model — “premium requests” are legacy since
         June 2026); ~25 models in the picker incl. GPT-5.6, Claude Opus 5, Gemini 3.x, Kimi K3,
@@ -1500,7 +1503,7 @@ description: Draft release notes from merged PRs. Use when asked
         <h2>Kahoot time</h2>
         <div class="cols">
           <div>
-            <p>Eight questions. Everything was on a slide.
+            <p>Twenty-four questions. Everything was on a slide.
             Winner gets <em>bragging rights and nothing else.</em></p>
             <p class="note">Questions drafted in
             <a href="kahoot-questions.md">kahoot-questions.md</a> — create the Kahoot,
