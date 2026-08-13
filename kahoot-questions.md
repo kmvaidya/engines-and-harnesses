@@ -1,180 +1,122 @@
-# Kahoot — 24 questions, in act order (the quiz doubles as a recap)
+# Kahoot — 11 questions, all harness engineering, scenario-first
 
-Every answer was on a slide. Difficulty is deliberately medium: distractors are
-plausible, and a few questions are traps where the obvious answer is wrong
-(marked 🪤). Kahoot limits: question ≤ 120 chars, answers ≤ 75 chars — all fit.
-Correct answer marked ✔. Suggested timer: 20s default, 30s where marked.
+Redesigned 2026-08-13: instead of "did you read the slides", each question is a
+situation a real Copilot user hits, and the correct answer is the optimal
+harness-engineering move. Mix: 5 medium, 6 hard. Q11 is the one pure knowledge
+question. Traps where the obvious answer is wrong are marked 🪤.
+
+Kahoot limits: question ≤ 120 chars, answers ≤ 75 chars — all fit. Correct
+answer marked ✔, spread across the four slots. Timer: 30s everywhere (scenarios
+need reading time); 20s is fine for Q7 and Q11.
+
+Every answer is verified against `/research/` (fetched 2026-08-12). The
+rationale line under each question is for the host, not for Kahoot.
 
 ---
 
-## Act 1 — the engine
+**1. Copilot keeps writing npm commands and untyped JS in your strict pnpm TypeScript repo. One fix for the whole team goes where?** *(medium)*
 
-**1. In "405B parameters," what exactly are the parameters?** *(warm-up)*
-- Tokens the model can recognize
-- ✔ Learned weights — the knobs training turns
-- The GPUs used during training
-- Stored training examples
+- Each dev adds it to their personal instructions
+- ✔ .github/copilot-instructions.md, committed to the repo
+- Paste the rules at the start of every chat
+- Fine-tune a custom model on the codebase
 
-**2. Why can one trained network complete code it has never seen?**
-- It searches the training set at runtime
-- It memorized GitHub verbatim
-- ✔ Training compressed the patterns into its weights
-- The harness looks the answer up for it
+*Why: repo-wide instructions are auto-added to every request for everyone with the repo, the moment the file is saved. Personal instructions fix one person; pasting fixes one chat. (track1-repo-custom-instructions.md)*
 
-**3. Turning temperature UP does what to the token odds?**
-- ✔ Flattens them — long shots get a real chance
-- Sharpens them — the favorite always wins
-- Makes the model think longer
-- Expands the vocabulary it can pick from
+**2. Half your team uses Copilot, half Claude Code, one holdout uses Cursor. The ONE instructions file they all read?** *(medium)*
 
-## Act 2 — tokens
+- ✔ AGENTS.md
+- .github/copilot-instructions.md
+- README.md
+- One file per tool, kept in sync by hand
 
-**4. Modern reasoning models CAN count the r's in "strawberry." What changed?** *(🪤)*
-- A new tokenizer that finally sees letters
-- ✔ Nothing — they think in steps now; the eyesight never changed
-- Much bigger context windows
-- They call a letter-counting tool
+*Why: AGENTS.md is the emerging cross-tool standard; Copilot, Claude Code, Codex, Cursor and Gemini all read it, so the harness investment survives changing tools. (track1-agents-md.md)*
 
-**5. The model receives "1234567890" as chunks like 123·456·7890. Split by what?**
-- Place value, in groups of three
-- Where commas would go
-- The number of digits a register holds
-- ✔ How often each chunk appeared in training text
+**3. Your migration rules leak into answers about React code. How do you scope them to just the migrations folder?** *(medium)*
 
-**6. Why must a position stamp be mixed into every token's vector?**
-- ✔ Attention reads everything at once — order is otherwise invisible
-- So the model knows when to stop generating
-- To mark sentence boundaries for grammar
-- To keep embeddings from overlapping in memory
+- Split the frontend into its own repo
+- Add "only applies to migrations" to the repo-wide file
+- ✔ A .instructions.md file with an applyTo glob
+- Name the folder in every prompt
 
-## Act 3 — scale
+*Why: path-specific files in .github/instructions/ take an applyTo glob (comma-separated inside one string, e.g. "prisma/migrations/&#42;&#42;") and only ride along for matching files. Repo-wide instructions always apply, whatever caveat you write into them. (track1-path-specific-instructions.md)*
 
-**7. 810 billion operations per token for Llama 405B — where does that number come from?** *(30s)*
-- Measured on an H100 with a profiler
-- Vocabulary size × number of layers
-- ✔ Two per parameter: every weight works on every token
-- Meta's marketing material
+**4. The cloud agent should follow your style rules, but code review nitpicks them on every PR. The precision knob?** *(hard)*
 
-**8. A ~500-token chat answer equals how many years of a human doing one multiply per second?** *(30s)*
-- 13 thousand
-- ✔ 13 million
-- 26 hundred
-- 13 billion
+- ✔ excludeAgent: "code-review" in that file's frontmatter
+- Delete the style rules and trust reviewers
+- Turn off Copilot code review for the repo
+- Keep two copies of the repo with different rules
 
-**9. DeepSeek-V3 has MORE total parameters than Llama 405B, yet is ~11× cheaper per token. How?**
-- Better GPUs
-- It skips the attention step
-- Lower-precision arithmetic
-- ✔ Mixture-of-experts: only ~37B parameters wake up per token
+*Why: the excludeAgent frontmatter key (new in 2026) opts one instructions file out of "code-review" or "cloud-agent" while the other surface keeps it. (track1-path-specific-instructions.md)*
 
-## Act 4 — thinking tokens
+**5. Your team has 30 playbooks: deploys, migrations, browser tests. Loading them all would flood the context window. The fix?** *(hard)*
 
-**10. Your reasoning model goes down a dead end and backtracks. Those wasted tokens are…**
-- ✔ Billed like everything else — wrong turns cost the same
-- Refunded once the final answer lands
-- Free — you only pay for answer tokens
-- Discarded before they reach the meter
+- One giant AGENTS.md holding all 30
+- Pick a model with a bigger context window
+- Paste the right playbook into chat each time
+- ✔ Skills: name+description in context, body loads when needed
 
-## Act 5 — where this is heading
+*Why: progressive disclosure. A skill costs a one-line description until its moment comes, so you can install many and pay for none until they fire. The giant file and the bigger window both still spend tokens on all 30 every request. (track1-agent-skills.md)*
 
-**11. METR's "time horizon" — the one exponential still visibly running — measures what?**
-- Benchmark score growth per dollar
-- Tokens per second at inference
-- Context window growth per year
-- ✔ Length of task an agent finishes at 50% success
+**6. Compliance says the agent must NEVER force-push. "It usually obeys the rule" won't fly. What do you reach for?** *(hard)*
 
-## The Turn
+- An ALL-CAPS rule in copilot-instructions.md
+- ✔ A preToolUse hook that returns deny
+- A warning paragraph in AGENTS.md
+- Asking for confirmation in every prompt
 
-**12. Per the deck, what's identical for you, your competitor, and a teenager in a dorm?**
-- The harness
-- The context budget
-- ✔ The engine — the model's frozen weights
-- The benchmark scores
+*Why: instructions persuade a probabilistic model; a hook is plain code that gates the tool call before it runs, and a preToolUse guard that errors fails closed. Deterministic, auditable, not a matter of model mood. (track1-hooks.md)*
 
-**13. In the vehicle taxonomy, the "truck" is…** *(30s)*
-- Bare chat plus one sharp tool
-- Your configured IDE assistant
-- A team workspace with shared MCP racks
-- ✔ An autonomous agent in CI — issue in, PR out, nobody in the cab
+**7. Your Planner custom agent must never edit code, and it never does. What actually guarantees that?** *(hard, 🪤)*
 
-## Act 6 — harness engineering
+- The "Do NOT edit code" line in its prompt
+- A script that reverts its edits afterward
+- ✔ Its tools list simply has no edit tool
+- Its temperature is set to zero
 
-**14. Which harness piece stays OUT of context until its description matches the task?**
-- Prompt files
-- ✔ Skills
-- Custom agents
-- Repo instructions
+*Why: safety by construction. The .agent.md tools list is the guardrail; the agent can't use a capability it was never handed. The prompt line is politeness, not enforcement. (track1-custom-agents.md)*
 
-**15. The Planner custom agent cannot edit code. What actually stops it?** *(🪤)*
-- The "do NOT edit code" line in its prompt
-- A hook that reverts its edits
-- ✔ It was never given an edit tool — safety by construction
-- Cloud-side content filters
+**8. A teammate hitched 9 MCP servers "just in case". Chat got pricier and dumber before any tool was even used. Why?** *(medium)*
 
-**16. What can a hook do that no instructions file can?**
-- ✔ Deterministically block a tool call before it runs
-- Explain the repo's conventions
-- Suggest a better prompt
-- Pick a cheaper model
+- ✔ Every tool description spends context on every request
+- The servers burn CPU in the background
+- Each server adds network round-trips
+- MCP bills per connected server
 
-**17. Why write AGENTS.md instead of putting everything in copilot-instructions.md?**
-- It loads faster
-- It supports longer files
-- ✔ Copilot, Claude Code, Codex, Cursor and Gemini all read it
-- GitHub deprecated the Copilot file
+*Why: every connected server's tool definitions sit in the context window whether used or not, thinning attention and raising cost. Anthropic's fix for the extreme case cut one workflow from 150K tokens to 2K. Hitch only the trailers you're towing. (track2-anthropic-code-execution-mcp.md)*
 
-**18. Why does the deck warn against hitching MCP servers "just in case"?**
-- Each server slows every request
-- They can edit files unsupervised
-- Licensing costs per server
-- ✔ Every tool description spends context tokens, used or not
+**9. You assign an issue to the cloud agent. Its PR admits tests failed: dependencies never installed in its sandbox. The fix?** *(hard)*
 
-## Act 7 — context engineering
+- Write "run pnpm install first" in the issue
+- List the dependencies in AGENTS.md
+- Retry until a run gets lucky
+- ✔ A copilot-setup-steps.yml workflow pre-installs them
 
-**19. A model ships with a 10× bigger context window. What did you actually get?** *(🪤)*
-- ✔ A bigger fuel tank — storage, not comprehension
-- 10× better recall of what's inside
-- Cheaper attention per token
-- Nothing — window sizes are marketing
+*Why: .github/workflows/copilot-setup-steps.yml (on the default branch, exact job name copilot-setup-steps) provisions the Actions sandbox before the agent starts. Instructions ask; setup steps guarantee. (track1-coding-agent.md)*
 
-**20. Anthropic deleted 80% of Claude Code's system prompt. Result on their coding evals?**
+**10. The cloud agent's PR carries a warning: a request to your private package registry was blocked. The right fix?** *(hard, 🪤)*
+
+- Disable the agent firewall
+- ✔ Add the registry domain to the firewall allowlist
+- Mirror the packages to public npm
+- Retry the task; it's probably a flake
+
+*Why: the blocked-request warning names the address and command; the Internet access settings take custom domain or URL entries. Disabling the firewall "works" but the docs' own warning applies: it opens exfiltration risk for every future run. (track1-coding-agent.md)*
+
+**11. Anthropic cut 80% of Claude Code's system prompt for Claude 5 models. Effect on their coding evals?** *(medium, knowledge)*
+
 - A small, acceptable quality drop
+- Big cost win, small quality loss
 - ✔ No measurable loss
-- A big cost win, small quality loss
-- It only worked after adding few-shot examples
+- It only worked after adding examples
 
-**21. Why do Anthropic's OLDER models still get the fat system prompt?** *(spicy, 30s)*
-- ✔ They lack the judgment for lean prompts — harness matched to engine
-- Backwards compatibility with old APIs
-- Nobody has updated it yet
-- Longer prompts run cheaper on old models
-
-**22. Per OpenAI, contradictory instructions hurt GPT-5 MORE than older models. Why?**
-- It refuses and returns an error
-- ✔ It burns billed reasoning tokens trying to reconcile them
-- It always follows the first rule it read
-- Its context window is smaller
-
-## Act 8 — picking an engine
-
-**23. Swapping ONLY the scaffold — no retraining — moved DeepSeek R1's SWE-bench score by about…** *(30s)*
-- 3 points
-- 8 points
-- ✔ 25 points
-- 40 points
-
-## The thesis
-
-**24. As engines get better, the harness should…** *(the closer)*
-- Get thicker — more rules, more examples
-- Stay frozen — it already works
-- Disappear — the model does everything
-- ✔ Shed compensation, grow capability
+*Why: "we removed over 80% of Claude Code's system prompt — and saw no measurable loss on our coding evaluations" (Thariq Shihipar, claude.com/blog, Jul 24 2026). The thesis in one number: as engines improve, compensation scaffolding comes out. (track2-thin-harness-evidence.md)*
 
 ---
 
-Setup: kahoot.com → Create → at 24 questions, Kahoot's spreadsheet import is
-now worth it (Add question → Import spreadsheet, fill their .xlsx template from
-this file) — or enter by hand in one sitting. Correct answers are spread evenly
-across the four slots. Grab the join QR from the lobby screen and drop it into
-the placeholder box on the Kahoot slide.
+Setup: kahoot.com → Create → 11 questions is comfortable to enter by hand in
+one sitting (the spreadsheet import stops being worth it at this size). Strip
+the *(difficulty)* tags and Why lines; they're host notes. Correct answers land
+in slots 1/2/3/4 fairly evenly as written. Grab the join QR from the lobby
+screen and drop it into the placeholder box on the Kahoot slide.
