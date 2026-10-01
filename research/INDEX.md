@@ -1,7 +1,8 @@
 # Research index
 
-38 files, all fetched **2026-08-12**. Every file opens with frontmatter carrying its
-source URL(s) and fetch date. The deck (`../index.html`) is built from these files,
+Round 1: 38 files, all fetched **2026-08-12**. Round 2: 6 files fetched
+**2026-09-30** (see the end of this page). Every file opens with frontmatter
+carrying its source URL(s) and fetch date. The deck (`../index.html`) is built from these files,
 not from model memory; where a slide states a perishable fact, this directory is
 the receipt.
 
@@ -77,3 +78,153 @@ Syntheses (the deck leans on these):
    10–25 points — which is the deck's whole argument wearing a lab coat.
 8. **Papyan's MAT1510 links no demos** — the brief assumed otherwise; its actual
    gift is the 2021→2025 syllabus drift and the theory framing.
+
+---
+
+# Round 2 — 2026-09-30
+
+Gathered for a "Build-Your-Own-Harness" series for engineers at a bank. Round 1
+files are left unchanged as the Aug 12 record; round 2 files record what is new,
+what changed, and new topics (harness design, agent security).
+
+Every claim in a round-2 file carries a tag:
+
+- **[V]** passed a 3-agent adversarial check (2 of 3 refutes needed to kill)
+- **[S]** spot-checked by hand against the live page on 2026-09-30
+- **[P]** confirmed against the primary source (the publisher's own page,
+  paper, repo or changelog) on 2026-09-30, with that source's URL recorded
+- **[E]** extracted with a quote from the named source, not cross-checked
+- **[R]** refuted; recorded so nobody reuses it
+
+**Primary-source pass (2026-09-30, same day):** every [E] claim and every
+claim built on a secondary source was checked against its primary source.
+Most held; the ones that did not are now marked [R] next to the corrected
+version. One [E] remains (a blog's general "10-20 points" claim, backed by the
+primary examples next to it). The biggest corrections:
+
+- OWASP Agentic Top 10: three of six incident-to-risk mappings came from the
+  launch blog and differ from the full PDF.
+- FINOS v2.0: the four "new risks" were blog bullets; the framework's six
+  agentic risks (AIR-SEC-024 to 029) are now listed.
+- SandboxEscapeBench: "15-35%" came from the survey; the paper's top models
+  escape about half the time (GPT-5 0.50, Opus 0.49).
+- Anthropic's three-agent harness: it dropped context resets for Opus 4.5;
+  the InfoQ and survey versions said otherwise.
+- Codex CLI's MCP server mode, which the Agents SDK pairing relied on, was
+  removed on Sep 9, 2026.
+- MCP spec 2026-07-28 is final, not a release candidate.
+- MCP allowlists in enterprise managed settings went GA on Aug 6, 2026, but
+  not for the cloud agent.
+
+| File | What it covers |
+|---|---|
+| [round2-copilot-changes.md](round2-copilot-changes.md) | Content exclusions in app/CLI, local sandboxing (preview), cloud-agent firewall limits, Sep 1 / Oct 2 / Oct 19 model retirements, billing, data residency; §9 instructions, AGENTS.md, prompt files, custom agents; §10 enterprise-managed permissions, skills, hooks, Memory, CLI, SDK, plugins |
+| [round2-agent-permission-models.md](round2-agent-permission-models.md) | Approval modes, sandboxing, admin lock-down and secrets handling compared across Claude Agent SDK/Claude Code, Codex CLI, OpenAI Agents SDK, Copilot cloud agent and CLI; what a bank harness should copy |
+| [round2-harness-reference-designs.md](round2-harness-reference-designs.md) | Two ways to divide a harness into parts (ETCLOVG, Meng et al.), mini-swe-agent v2, Epoch's harness, OpenDev, Anthropic's three-agent harness, OpenAI Agents SDK sandbox harness, practitioner harness deltas, MCP annotations and the final 2026-07-28 spec |
+| [round2-frontier-model-guidance.md](round2-frontier-model-guidance.md) | Claude Fable 5 harness guidance (long turns, verifier subagents, no token countdowns), the GPT-6 family and its async tools / mid-turn steering, Gemini 3.x guidance (thinking levels, remove temperature) |
+| [round2-agent-security-governance.md](round2-agent-security-governance.md) | OWASP Agentic Top 10, FINOS AI Governance Framework v2.0, lethal trifecta, sandbox escapes, Copilot Enterprise AI Controls and MCP controls |
+| [round2-vscode-copilot-setup.md](round2-vscode-copilot-setup.md) | (Oct 1) VS Code session targets, `/init` per surface, agents and permission levels, exact approval settings, skills, how to see what loaded, JetBrains differences. Source for the Build Your Own Harness deck's setup slides |
+| [round2-evals-and-benchmarks.md](round2-evals-and-benchmarks.md) | Score = model + harness (CORE-Bench 42% to 95%), first eval suite advice, pass^k, Epoch v2.0 and SEAL results; §6 independent results for the GPT-6 / Fable 5 generation |
+
+## Round 3 — 2026-10-01 (Build Your Own Harness, Part 1)
+
+Same tags as round 2, plus **[O]** for our own recommendation. Gathered for
+the Part 1 deck in `../build-your-own-harness/`.
+
+| File | What it covers |
+|---|---|
+| [round3-framing-taxonomy-changes.md](round3-framing-taxonomy-changes.md) | Source of the knowns/unknowns framing (Thariq Shihipar, claude.com, Jul 6 2026); technical debt taxonomies and seven recommended auditor categories; dated Copilot changes Aug 13 to Oct 1 |
+| [round3-hooks-context-memory.md](round3-hooks-context-memory.md) | Hook formats and events for Local vs Copilot sessions, blocking `git push` and protected paths (tested scripts), what hooks can't see, PostToolUse/SessionStart/Stop uses, what VS Code loads before your prompt, the two memory systems |
+| [round3-customizations-and-automation.md](round3-customizations-and-automation.md) | Prompt files vs skills vs custom agents, example skill/prompt/agent files, running agents in parallel, cloud agent automations and Agentic Workflows, what goes in instructions, AGENTS.md vs copilot-instructions.md, personal instruction files |
+
+## Where round 2 changes or contradicts round 1
+
+1. **OpenAI's frontier is now GPT-6** (Astra, Sol/6.1 Sol, Luna). The URL behind
+   `track2-openai-gpt5-prompting-guides.md` now serves the GPT-6 guide. GPT-5.x
+   guidance is the previous generation.
+2. **OpenAI's multi-agent guidance moved a little.** `track2-vendor-disagreements.md`
+   §3 quotes the 2025 practical guide ("maximize a single agent's
+   capabilities first"). The GPT-6 guide offers a prompt for harnesses that
+   already run multiple agents, telling the model to delegate when it "could
+   save time or improve quality". That is advice on how to use subagents, not
+   on whether to start with them, so the 2025 position is not replaced.
+3. **Copilot model list** (`track1-models.md`): Gemini 3.1 Pro, Opus 4.5, Opus
+   4.6, Sonnet 4.5 and Raptor mini are gone (retired Sep 1). Added: Fable 5.1,
+   Opus 5.5, Sonnet 5.5, GPT-6 models, Gemini 3.7/3.8 Flash, Grok 4.6/4.7,
+   MAI-Code-1.1-Flash. `track1-custom-agents.md` has an example that names
+   `Claude Opus 4.5`, which no longer exists in Copilot.
+4. **Content exclusions** (`track1-context.md`): now honoured by the Copilot
+   app and CLI; still not by VS Code Edit/Agent modes.
+5. **Sandboxing** (`track1-other-surfaces.md` §7): local sandboxing is now a
+   concrete, configurable preview feature in the Copilot app.
+6. **Cloud agent firewall** (`track1-coding-agent.md`): it does not cover MCP
+   server or setup-step processes. Round 1 did not record this limit.
+7. **mini-swe-agent** (`track3-benchmarks.md`): "bash as its only tool" still
+   holds, but v2 uses native tool calling by default. Do not say it avoids the
+   tool-calling interface.
+8. **SWE-bench Verified top score:** one round-2 source says ~88.6%; round 1's
+   vendor-reported 95-96% stands. The 88.6% looks like an older snapshot.
+9. **Opus 4.5 across three product harnesses** (`track3-benchmarks.md`
+   scaffold table, `track3-benchmark-critiques.md`): round 1's "50.2%-55.4%,
+   5.2 pp spread" is wrong. Augment's primary post gives Auggie 51.80%,
+   Cursor 50.21%, Claude Code 49.75% (about a 2-point spread). The 55.4% is
+   Opus 4.6 in a different post. The deck does not use this figure.
+10. **llm-stats verification count** (`track3-benchmarks.md`): round 1's "1 of
+   100 independently verified" (Jun 16) is now 0 of 116 on the live board.
+11. **Scale SEAL scaffold:** the top entries on the SWE-bench Pro board are now
+   run with mini-swe-agent, not SWE-Agent, and not every entry runs under the
+   same settings.
+12. **Prompt files are deprecated in VS Code** (`track1-prompt-files.md`):
+   not loaded by Agent Host sessions; prompt-to-skill migration is on by
+   default. Unannounced; GitHub docs still say public preview.
+13. **Code review instruction files** (`track1-agents-md.md`,
+   `track1-code-review.md`): code review now also reads `CLAUDE.md`,
+   `GEMINI.md` and a new `REVIEW.md`, not AGENTS.md only.
+14. **VS Code instruction precedence** (`track1-repo-custom-instructions.md`):
+   VS Code docs dropped the personal > repo > org list and now say not to
+   rely on any precedence. User instruction files no longer sync.
+15. **VS Code location settings** (`track1-path-specific-instructions.md`,
+   `track1-custom-agents.md`): `chat.instructionsFilesLocations` and
+   `chat.agentFilesLocations` are deprecated; `/create-agent` works only in
+   the Local agent.
+16. **Hooks** (`track1-hooks.md`): VS Code hooks are no longer one feature;
+   the Local harness fires 8 events, Copilot SDK hooks are GA. The CLI also
+   reads `.claude/settings.json`. Hook timeouts fail open.
+17. **Copilot Memory** (`track1-memory-spaces.md`): also used by agentic
+   autofix; the 28-day timer can reset on use.
+18. **Terminal-Bench** (`track3-benchmarks.md`): the board is now version
+   4.0; round 1's 2.1 figures are two versions old.
+19. **More retirements:** Opus 4.7, Gemini 3.5/3.6 Flash and Kimi K2.7 Code
+   on Oct 2; GPT-5.5, GPT-5.4, GPT-5.4 mini, GPT-5 mini, Gemini 3.7 Flash and
+   Grok 4.5 on Oct 19. Six of them are on the EU data-residency list.
+20. **A round-2 refutation was wrong:** "Copilot harness GA in JetBrains" is
+   true (changelog Aug 24). See `round2-copilot-changes.md` §7.
+
+## Follow-up pass (2026-09-30): former gaps now covered
+
+The gaps listed at the end of the first round-2 run were researched against
+primary sources the same day:
+
+- Copilot instructions, AGENTS.md, prompt files, custom agents, skills,
+  hooks, Memory, Spaces, CLI, SDK, plugins and Agentic Workflows:
+  `round2-copilot-changes.md` §9 and §10.
+- Permission models and secrets handling: new file
+  `round2-agent-permission-models.md`.
+- Gemini 3.x guidance: `round2-frontier-model-guidance.md` §4.
+- Independent results for the newest models: `round2-evals-and-benchmarks.md`
+  §6.
+- OpenAI's GPT-5.4 and GPT-5.3-Codex figures and the Meng et al. paper: read
+  in full through a reader proxy and the Crossref API.
+
+## Still open
+
+- Network egress control for MCP servers on the Copilot cloud agent: no
+  primary source describes one.
+- Independent results for GPT-6 Sol, Luna and 6.1 Sol, and Sonnet 5.5: none
+  exist yet on any board checked. No METR time horizon for any model newer
+  than Mythos Preview.
+- Classifier-based approvers (Claude `auto`, Codex `auto_review`): no vendor
+  publishes miss rates.
+- Several docs disagree with changelogs (JetBrains support matrices, code
+  review instruction files, plugin hooks on the cloud agent). Recorded in
+  `round2-copilot-changes.md` §9 and §10; test before relying on them.

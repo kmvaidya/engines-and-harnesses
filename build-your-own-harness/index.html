@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build Your Own Harness</title>
+  <meta name="description" content="A hands-on series on building a GitHub Copilot harness for a real codebase.">
+  <link rel="stylesheet" href="../vendor/reveal/reset.css">
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/reveal/plugin/highlight.css">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ================================================================
+         TITLE
+         ================================================================ -->
+    <section>
+      <section class="opener" id="title">
+        <span class="eyebrow">lunch &amp; learn · part 1</span>
+        <h1>Build Your<br>Own Harness</h1>
+        <p class="sub">Turning GitHub Copilot into a tool that knows your codebase,
+        follows your rules, and stays inside the lines.</p>
+        <p class="byline">by <b>Kay</b> · october 2026</p>
+        <aside class="notes">
+          Say hi. Catch everyone up: in August we looked at what a harness is.
+          This series is about building one.
+          Navigation reminder for yourself: RIGHT moves between sections, DOWN goes
+          deeper inside a section, ESC shows the whole map.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         1 · CATCH UP
+         ================================================================ -->
+    <section>
+      <section id="recap">
+        <span class="eyebrow">where we left off</span>
+        <h2>The Copilot harness on one page</h2>
+        <table style="font-size:0.54em">
+          <tr><th>Piece</th><th>Where it lives</th><th>What it does</th></tr>
+          <tr><td>Instructions</td><td><code>.github/copilot-instructions.md</code></td><td>Loaded with every request. How this repo works</td></tr>
+          <tr><td>Path instructions</td><td><code>.github/instructions/*.instructions.md</code></td><td>Loaded for files that match their <code>applyTo</code> pattern</td></tr>
+          <tr><td>AGENTS.md</td><td>Repo root, or any folder</td><td>The same idea in a format most AI coding tools read</td></tr>
+          <tr><td>Skills</td><td><code>.github/skills/&lt;name&gt;/SKILL.md</code></td><td>A workflow loaded when the task matches, or run as <code>/name</code></td></tr>
+          <tr><td>Prompt files</td><td><code>.github/prompts/*.prompt.md</code></td><td>A saved task run as <code>/name</code>. Being replaced by skills</td></tr>
+          <tr><td>Custom agents</td><td><code>.github/agents/*.agent.md</code></td><td>A role with its own instructions and tools</td></tr>
+          <tr><td>Hooks</td><td><code>.github/hooks/*.json</code></td><td>Scripts at fixed points in the agent's loop. Can block an action</td></tr>
+          <tr><td>MCP servers</td><td><code>.vscode/mcp.json</code></td><td>Connections to outside tools and data</td></tr>
+          <tr><td>Memory</td><td>VS Code memory files · GitHub Copilot Memory</td><td>Notes kept between sessions</td></tr>
+          <tr><td>Cloud agent, code review</td><td>github.com</td><td>Use the same files, without you at the keyboard</td></tr>
+        </table>
+        <aside class="notes">
+          One-slide refresher of the August deck. Don't teach each row; say that
+          everything in this table is a file in the repo, and today we'll write
+          several of them. The engine (the model) is rented. This table is ours.
+        </aside>
+      </section>
+
+      <section id="changes">
+        <span class="eyebrow">august → october</span>
+        <h2>Seven weeks of changes</h2>
+        <table style="font-size:0.74em">
+          <tr><th>When</th><th>What changed</th></tr>
+          <tr><td>Aug 24</td><td>The Copilot harness became generally available in JetBrains</td></tr>
+          <tr><td>Sep 1</td><td>Six models retired, including Claude Opus 4.5 from our August examples</td></tr>
+          <tr><td>Sep 2</td><td>Content exclusions now apply in the Copilot app and CLI, but still not in VS Code agent mode</td></tr>
+          <tr><td>Sep 9</td><td>Admins can set agent permission rules that users can't loosen</td></tr>
+          <tr><td>Sep 22–29</td><td>New models: Claude Opus 5.5 and Sonnet 5.5, GPT-6 Sol, Luna and 6.1 Sol</td></tr>
+          <tr><td>Sep 30</td><td>VS Code 1.140: the Copilot harness may now be your default</td></tr>
+          <tr><td>Recently</td><td>VS Code deprecated prompt files in favour of skills</td></tr>
+        </table>
+        <p class="note">More model retirements land on Oct 2 and Oct 19. Sources: research/round3-framing-taxonomy-changes.md §3.</p>
+        <aside class="notes">
+          The point isn't any single row. It's the pace: two months, and the
+          recap table already needed edits. Anything built on AI needs a habit of
+          checking and updating, and that includes this deck.
+          If asked "which model should I use?": whatever's current in your picker;
+          the harness we build today works with all of them.
+        </aside>
+      </section>
+
+      <section id="how">
+        <span class="eyebrow">how these sessions work</span>
+        <h2>Build along with me</h2>
+        <div class="cols-wide-left">
+          <ul>
+            <li>Open a project you're working on and repeat each step there</li>
+            <li>Ask questions at any point</li>
+            <li>Tell me what you want to learn, and I'll plan around it</li>
+          </ul>
+          <div class="panel blue">
+            <h3>Today</h3>
+            <p>What's possible, shown end to end on a real repository.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          The deck is on GitHub Pages; share the link so people can browse along.
+          I'll be switching between the slides and VS Code. Encourage everyone to
+          open their own project now, so they're ready when we start building.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         2 · THE CONTRACT
+         ================================================================ -->
+    <section>
+      <section id="contract">
+        <span class="eyebrow">the idea underneath</span>
+        <h2>Every AI interaction is a contract</h2>
+        <blockquote>“The map, a representation of the work to be done, is my prompts and
+        skills and context, it's what I give Claude. The territory is where the work
+        needs to happen, the codebase, the real world, its actual constraints.
+        […] The difference between the map and the territory is what I call
+        <em>unknowns</em>.”
+        <cite>Thariq Shihipar, Anthropic · “A field guide to Claude Fable 5: Finding your unknowns” · July 2026</cite></blockquote>
+        <p class="fragment">Every task you hand over starts with a gap between what you said
+        and what's true. The contract is how both sides close it.</p>
+        <aside class="notes">
+          Thariq Shihipar is a member of Anthropic's technical staff; this is from
+          his field guide on the Claude blog. His metaphor is map and territory.
+          The prompt is never the whole picture. The question is how much of the
+          gap you close before the model starts guessing.
+        </aside>
+      </section>
+
+      <section id="grid">
+        <span class="eyebrow">mapping the unknowns</span>
+        <h2>Four kinds of knowing</h2>
+        <div class="quad">
+          <div></div>
+          <div class="axis col">aware of it</div>
+          <div class="axis col">not aware of it</div>
+          <div class="axis row">known</div>
+          <div class="cell">
+            <h3>Known knowns</h3>
+            <p>“What do I tell the agent that I want?”</p>
+          </div>
+          <div class="cell">
+            <h3>Unknown knowns</h3>
+            <p>“What's so obvious I'd never write it down, but would recognize it if I saw it?”</p>
+          </div>
+          <div class="axis row">unknown</div>
+          <div class="cell">
+            <h3>Known unknowns</h3>
+            <p>“What haven't I figured out yet, but I'm aware that I haven't?”</p>
+          </div>
+          <div class="cell">
+            <h3>Unknown unknowns</h3>
+            <p>“What haven't I considered at all?”</p>
+          </div>
+        </div>
+        <p class="note">Questions quoted from the same field guide.</p>
+        <aside class="notes">
+          Walk each quadrant with an everyday example, not a code one first:
+          known knowns, "I want the report by Friday";
+          known unknowns, "I don't know which data source finance uses";
+          unknown knowns, "of course it should be in our template, everyone knows that";
+          unknown unknowns, "nobody realised the source changed format last month".
+          Then the same four for a coding task. The grid comes from Rumsfeld's 2002
+          briefing; the Johari window (1955) is a cousin. Not needed on the slide.
+        </aside>
+      </section>
+
+      <section id="both-sides">
+        <span class="eyebrow">the other side of the contract</span>
+        <h2>The model has the same four</h2>
+        <table style="font-size:0.76em">
+          <tr><th></th><th>You</th><th>The model</th></tr>
+          <tr><td>Known knowns</td><td>What you put in the request</td><td>What it was told, plus what it learned in training</td></tr>
+          <tr><td>Known unknowns</td><td>Questions you know are open</td><td>What it knows it has to look up</td></tr>
+          <tr><td>Unknown knowns</td><td>Conventions too obvious to mention</td><td>Answers sitting in the repo that it doesn't think to check</td></tr>
+          <tr><td>Unknown unknowns</td><td>Risks nobody has considered</td><td>Your team's rules, which it has never seen</td></tr>
+        </table>
+        <blockquote class="fragment">“When Claude runs into an unknown, it needs to make a decision based on
+        its best guess of what I want.”<cite>Thariq Shihipar, Anthropic</cite></blockquote>
+        <aside class="notes">
+          The grid isn't only about you. The model brings its own knowns and gaps,
+          and the dangerous cases are where your unknown knowns meet its unknown
+          unknowns: the rule you'd never think to say, which it has no way to know.
+          That's where confident wrong answers come from.
+        </aside>
+      </section>
+
+      <section id="harness-shrinks">
+        <span class="eyebrow">what the harness is for</span>
+        <h2>A harness shrinks the guesswork</h2>
+        <table style="font-size:0.76em">
+          <tr><th>Quadrant</th><th>What you can do</th><th>In the harness</th></tr>
+          <tr><td>Known knowns</td><td>Write them down once</td><td>Instructions, AGENTS.md</td></tr>
+          <tr><td>Known unknowns</td><td>Investigate before acting</td><td><code>/init</code>, a blind-spot pass, plan before code</td></tr>
+          <tr><td>Unknown knowns</td><td>Capture them the moment they surface</td><td>Add the fix to the harness whenever it gets something wrong</td></tr>
+          <tr><td>Unknown unknowns</td><td>Limit the damage and catch it early</td><td>Hooks, review, verification</td></tr>
+        </table>
+        <p class="fragment"><strong>The contract between you and the model lives in the harness.</strong>
+        Written once, reviewed like code, used by everyone who opens the repo.</p>
+        <aside class="notes">
+          This is the thesis. Every piece we build today lands in one of these rows.
+          "Blind-spot pass" is Thariq's term: ask the model to find your unknown
+          unknowns before you start. Example prompt: "I'm about to change X and know
+          nothing about this module. Do a blind-spot pass and tell me what I should
+          be asking." The goal isn't zero risk. It's fewer pitfalls and faster work.
+        </aside>
+      </section>
+
+      <section id="board-start">
+        <span class="eyebrow">your turn</span>
+        <h2>Sort what you know about your project</h2>
+        <div class="board" data-key="contract" data-seeds="grid">
+          <div class="bq" data-q="kk"><h3>Known knowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="uk"><h3>Unknown knowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="ku"><h3>Known unknowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="uu"><h3>Unknown unknowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="board-tools" style="grid-column:1/-1"><button class="seed-toggle">examples</button></div>
+        </div>
+        <aside class="notes">
+          Three or four minutes. Ask the room to call out things about the projects
+          they opened, and type each into a quadrant. Click an item to remove it.
+          If the room is quiet, press "examples" for a starter set (dashed items),
+          then ask "which of these is true for your project?".
+          Good prompts: "What would you tell a new joiner on day one?" (known knowns),
+          "What do you still not understand about this codebase?" (known unknowns),
+          "What did you learn the hard way?" (unknown knowns).
+          We come back to this board at the end.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         3 · WHAT A HARNESS IS MADE OF
+         ================================================================ -->
+    <section>
+      <section id="three-parts">
+        <span class="eyebrow">anatomy</span>
+        <h2>A harness has three parts</h2>
+        <div class="cols-3">
+          <div class="panel">
+            <h3>Prompt</h3>
+            <p class="small">What it's told: built-in instructions, your instruction files,
+            skills, and your message.</p>
+          </div>
+          <div class="panel">
+            <h3>Memory</h3>
+            <p class="small">What it carries between sessions: notes it saved, and facts
+            it learned about the repo.</p>
+          </div>
+          <div class="panel">
+            <h3>Tools</h3>
+            <p class="small">What it can do: read, search, edit, run commands, reach other
+            systems. Hooks check each use.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          Everything in the recap table belongs to one of these three. Instructions,
+          AGENTS.md and skills are prompt. Memory files and Copilot Memory are memory.
+          Terminal, file edits, MCP, and the hooks that police them are tools.
+        </aside>
+      </section>
+
+      <section id="before-prompt">
+        <span class="eyebrow">before you type a word</span>
+        <h2>Most of what the model reads, you didn't type</h2>
+        <div class="cols-wide-right">
+          <div>
+            <p>Harness engineering is deciding what the model reads <strong>before</strong> your prompt arrives.</p>
+            <p class="note">VS Code assembles these sources for every request. The docs list them but don't promise an order.</p>
+          </div>
+          <div class="stack">
+            <div class="layer"><span>Built-in system instructions</span><span class="who">VS Code · GitHub</span></div>
+            <div class="layer"><span>Tool definitions</span><span class="who">VS Code · MCP</span></div>
+            <div class="layer yours"><span>Instruction files and AGENTS.md</span><span class="who">you</span></div>
+            <div class="layer yours"><span>Skill names and descriptions</span><span class="who">you</span></div>
+            <div class="layer yours"><span>Memory (first 200 lines of user memory)</span><span class="who">you · the agent</span></div>
+            <div class="layer"><span>Open file, selection, errors, git state</span><span class="who">your editor</span></div>
+            <div class="layer"><span>Earlier messages in this chat</span><span class="who">history</span></div>
+            <div class="layer prompt"><span>Your prompt</span><span class="who">finally</span></div>
+          </div>
+        </div>
+        <aside class="notes">
+          This is the most important mental model of the session. By the time the
+          model reads your request, it has already read a lot. The blue-bordered
+          layers are the ones we control. Everything we build today is about those.
+          Source: code.visualstudio.com/docs/agents/concepts/context (research/round3-hooks-context-memory.md Q9).
+        </aside>
+      </section>
+
+      <section id="see-it">
+        <span class="eyebrow">trust, then verify</span>
+        <h2>Check what it actually read</h2>
+        <table style="font-size:0.8em">
+          <tr><th>To see</th><th>Use</th></tr>
+          <tr><td>The full request, system prompt included</td><td><strong>Developer: Show Chat Debug View</strong></td></tr>
+          <tr><td>Which files shaped an answer</td><td><strong>References</strong>, under the answer</td></tr>
+          <tr><td>Which customizations were found</td><td><strong>Chat: Open Customizations</strong></td></tr>
+          <tr><td>What it remembers</td><td><strong>Chat: Show Memory Files</strong></td></tr>
+          <tr><td>Anything else</td><td><code>/troubleshoot Which customizations were loaded, and did any fail?</code></td></tr>
+        </table>
+        <aside class="notes">
+          Open the Chat Debug View live for a few seconds. People are usually
+          surprised how long the system prompt is. Commands are in the Command
+          Palette (Ctrl+Shift+P).
+        </aside>
+      </section>
+
+      <section id="memory">
+        <span class="eyebrow">memory</span>
+        <h2>Two kinds of memory</h2>
+        <table style="font-size:0.74em">
+          <tr><th></th><th>VS Code memory files</th><th>GitHub Copilot Memory</th></tr>
+          <tr><td>Where</td><td>Your machine: user, repo and session folders</td><td>GitHub's servers, per repo and per user</td></tr>
+          <tr><td>Who uses it</td><td>The agent in VS Code</td><td>Cloud agent, code review, CLI, autofix</td></tr>
+          <tr><td>How it's checked</td><td>Not at all. Plain notes</td><td>Each repo fact carries citations, checked against the branch</td></tr>
+          <tr><td>How long it lasts</td><td>Until deleted</td><td>Deleted after 28 days unused</td></tr>
+          <tr><td>Where to look</td><td><strong>Chat: Show Memory Files</strong></td><td>GitHub settings › Copilot › Memory</td></tr>
+        </table>
+        <aside class="notes">
+          Just make people aware it exists and that it's read before their prompt.
+          Memory files can go stale or pick up something wrong, and the agent will
+          keep acting on it. Managing memory well is a skill of its own.
+          Copilot Memory on org plans needs an admin to switch it on.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         4 · START: /init, AND WAIT
+         ================================================================ -->
+    <section>
+      <section id="init">
+        <span class="eyebrow">step one</span>
+        <h2><code>/init</code> drafts the instructions for you</h2>
+        <div class="cols-wide-left">
+          <div>
+            <p>It explores the repo, finds any existing instruction files, and drafts
+            workspace instructions for you to review.</p>
+            <table style="font-size:0.66em">
+              <tr><th>Where</th><th>How</th></tr>
+              <tr><td>VS Code, Local session</td><td><code>/init</code></td></tr>
+              <tr><td>VS Code, Copilot session</td><td><strong>Chat: Open Customizations</strong>, then ask in Overview</td></tr>
+              <tr><td>Copilot CLI</td><td><code>/init</code> writes <code>.github/copilot-instructions.md</code></td></tr>
+              <tr><td>JetBrains</td><td><strong>Generate Agent Instructions</strong> writes <code>AGENTS.md</code></td></tr>
+            </table>
+          </div>
+          <div class="wait fragment">
+            <span class="wait-word">Wait.</span>
+            <p>Before it reads anything:</p>
+            <ul class="small">
+              <li>What should it never open?</li>
+              <li>What should it never run?</li>
+              <li>Does the owner of this repo agree?</li>
+            </ul>
+          </div>
+        </div>
+        <aside class="notes">
+          Show the slide, switch to VS Code, then stop before running it.
+          Turn to the repo owner: "Is there anything in here the AI should never
+          access?" Ask everyone to ask themselves the same about their own project.
+          Write down whatever paths come up; they become a hook in two minutes.
+          Also say: I don't want to commit or push anything by accident on someone
+          else's repo. So before /init, we set up guardrails.
+          Check the Session Target picker in the chat view: /init is documented for
+          Local sessions. Since VS Code 1.140 the default may be the Copilot harness.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         5 · HOOKS FIRST
+         ================================================================ -->
+    <section>
+      <section id="hooks">
+        <span class="eyebrow">guardrails first</span>
+        <h2>Instructions ask. Hooks enforce.</h2>
+        <div class="cols">
+          <div class="panel">
+            <h3>An instruction</h3>
+            <p class="small">“Never run <code>git push</code>.” The model will usually comply.</p>
+          </div>
+          <div class="panel blue">
+            <h3>A hook</h3>
+            <p class="small">A script that runs before every tool call and can deny it.
+            The model doesn't get a vote.</p>
+          </div>
+        </div>
+        <blockquote>“Adding a rule to an instructions file is not equivalent to enforcing that rule with a hook.”
+        <cite>VS Code docs, agent customization</cite></blockquote>
+        <p class="note">Hook points in VS Code: SessionStart · UserPromptSubmit · PreToolUse · PostToolUse · PreCompact · SubagentStart · SubagentStop · Stop</p>
+        <aside class="notes">
+          Hooks are the first thing I set up on any repo I don't own. Their first
+          job is safety. We'll see other uses at the end of this section.
+          Hooks in VS Code are still in Preview; in the Copilot SDK they're GA.
+        </aside>
+      </section>
+
+      <section id="hook-push">
+        <span class="eyebrow">hook one</span>
+        <h2>The agent never pushes</h2>
+        <div class="cols">
+          <div>
+            <div class="prompt">/create-hook Deny the agent from running git push
+in any form. Give the model a reason so
+it asks me to push instead.</div>
+            <div class="filename">.github/hooks/guardrails.json</div>
+            <pre><code class="language-json">{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      { "type": "command", "cwd": ".github/hooks",
+        "command": "node block-git-push.cjs",
+        "timeoutSec": 10 }
+    ]
+  }
+}</code></pre>
+          </div>
+          <div>
+            <div class="filename">.github/hooks/block-git-push.cjs</div>
+            <pre><code class="language-javascript">let raw = '';
+process.stdin.on('data', c =&gt; (raw += c));
+process.stdin.on('end', () =&gt; {
+  const ev = JSON.parse(raw);
+  let args = ev.tool_input ?? ev.toolArgs ?? {};
+  if (typeof args === 'string') {
+    try { args = JSON.parse(args); } catch {}
+  }
+  const cmd = String(args.command ?? '');
+  if (/\bgit\b[^\n;&amp;|]*\bpush\b/i.test(cmd)) {
+    process.stderr.write(
+      'Policy: the agent may not run git push. ' +
+      'Ask the user to push.');
+    process.exit(2);          // 2 = deny
+  }
+});</code></pre>
+          </div>
+        </div>
+        <aside class="notes">
+          Run /create-hook live and talk while it works; good moment for questions.
+          Compare what it generates with this reference version. This one works in
+          both Local and Copilot sessions: exit code 2 blocks in both, and it reads
+          both payload shapes. The full tested version (which also writes the JSON
+          decision) is in research/round3-hooks-context-memory.md Q4.
+          Needs Node on the machine. Test it once: ask the agent to push, and watch
+          it get refused. Note: in the Copilot harness a crashing hook blocks every
+          tool call, so test before committing it.
+        </aside>
+      </section>
+
+      <section id="hook-paths">
+        <span class="eyebrow">hook two</span>
+        <h2>Some files are off limits</h2>
+        <div class="cols">
+          <div>
+            <h3>Layer 1 · ask</h3>
+            <div class="filename">.github/copilot-instructions.md</div>
+            <pre><code class="language-markdown">## Boundaries
+- Don't open `.env` files, `secrets/`, or key files.
+  They hold credentials. Ask me for any value
+  you need.</code></pre>
+          </div>
+          <div>
+            <h3>Layer 2 · enforce</h3>
+            <div class="filename">.github/hooks/protect-paths.cjs</div>
+            <pre><code class="language-javascript">const PROTECTED = [
+  /(^|[\/\s"'`=])\.env(\.(?!example\b)[\w.-]+)?(?=$|[\s"'`;|&amp;)\/])/i,
+  /(^|[\/\s"'`])secrets\//i,
+  /\.(pem|key|pfx)\b/i,
+];
+// deny any tool call whose arguments
+// mention a protected path (exit 2)</code></pre>
+          </div>
+        </div>
+        <p>Add the paths the repo owner named, then ask the agent to open one.</p>
+        <aside class="notes">
+          Two layers on purpose. The instruction stops the model from trying in the
+          first place, which saves noise. The hook catches it when it tries anyway.
+          The hook scans every argument of every tool call, so it covers file reads,
+          searches and terminal commands that name the path.
+          Full script: research/round3-hooks-context-memory.md Q4. It was tested
+          against 13 sample tool calls, but not yet inside VS Code; do one dry run.
+        </aside>
+      </section>
+
+      <section id="hook-limits">
+        <span class="eyebrow">know the limits</span>
+        <h2>What a hook can't see</h2>
+        <ul>
+          <li>A command that reaches the file without naming it: a wildcard, a variable, a script</li>
+          <li>A workspace search whose results include lines from the file</li>
+          <li>Files you open or attach yourself. They never pass through a tool call</li>
+          <li>A hook that crashes or times out in a Local session lets the call through</li>
+        </ul>
+        <p class="fragment">For a hard guarantee, admins can set managed <code>Read(...)</code> deny rules. Hooks are a guardrail, not a wall.</p>
+        <aside class="notes">
+          Worth being honest with a bank audience. Content exclusions, the admin
+          feature for keeping files away from Copilot, still don't apply in VS Code
+          agent mode. Managed deny rules apply to Copilot-harness sessions for users
+          who receive enterprise managed settings.
+        </aside>
+      </section>
+
+      <section id="hook-more">
+        <span class="eyebrow">beyond safety</span>
+        <h2>Hooks do more than block</h2>
+        <table style="font-size:0.78em">
+          <tr><th>Hook point</th><th>Use it to</th></tr>
+          <tr><td>PostToolUse</td><td>Format, lint, type-check or run the affected tests after every edit, and hand the results back to the model</td></tr>
+          <tr><td>SessionStart</td><td>Add context at the start: “the onboarding guide is 40 commits out of date”</td></tr>
+          <tr><td>Stop</td><td>Refuse to finish until the tests pass</td></tr>
+          <tr><td>PreToolUse</td><td>Rewrite a command before it runs, or ask you first</td></tr>
+        </table>
+        <aside class="notes">
+          Not a hook masterclass, just the menu. Example: after any Python edit,
+          run mypy and the matching pytest file, and feed failures back so the
+          agent fixes them before it says it's done. Stop hooks cost extra turns,
+          so guard against loops.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         6 · INSTRUCTIONS
+         ================================================================ -->
+    <section>
+      <section id="review-draft">
+        <span class="eyebrow">now run /init</span>
+        <h2>Review the draft like a pull request</h2>
+        <table style="font-size:0.8em">
+          <tr><th>Call</th><th>When</th></tr>
+          <tr><td class="good">Keep</td><td>True, specific to this repo, and not something the model would guess</td></tr>
+          <tr><td>Fix</td><td>Nearly right: a wrong command, an old folder, a missing caveat</td></tr>
+          <tr><td class="bad">Cut</td><td>True of any project: “write clean code”, “follow best practices”</td></tr>
+          <tr><td>Ask</td><td>Nobody is sure. Find out before it goes in</td></tr>
+        </table>
+        <aside class="notes">
+          Run /init now that the guardrails exist. Read the draft out loud and let
+          the room call keep, fix, cut or ask. Every "fix" is an unknown known
+          surfacing: something the team knows that the code doesn't say.
+        </aside>
+      </section>
+
+      <section id="sections">
+        <span class="eyebrow">structure</span>
+        <h2>Sections worth having</h2>
+        <div class="cols-wide-right">
+          <div>
+            <ul class="small">
+              <li><strong>Architecture</strong>: how the pieces fit, in a few lines</li>
+              <li><strong>Commands</strong>: build, test, lint, format, exactly</li>
+              <li><strong>Technology</strong>: what we use, and what we avoid</li>
+              <li><strong>Conventions</strong>: code, naming, Git</li>
+              <li><strong>Boundaries</strong>: what not to touch, and why</li>
+              <li><strong>Definition of done</strong>: what to run before saying “finished”</li>
+            </ul>
+            <p class="note">The first five headings follow the VS Code customization guide.</p>
+          </div>
+          <div>
+            <div class="filename">.github/copilot-instructions.md</div>
+            <pre><code class="language-markdown"># &lt;Repo&gt;: &lt;what it does, in one line&gt;
+
+## Architecture
+## Commands
+## Technology
+## Conventions
+### Git
+## Boundaries
+## Definition of done</code></pre>
+          </div>
+        </div>
+        <aside class="notes">
+          "Document decisions the agent cannot reliably infer from the code alone.
+          Avoid generic advice." That's VS Code's own guidance. GitHub's generator
+          aims for no more than two pages. Short beats complete: every line is
+          read on every request.
+        </aside>
+      </section>
+
+      <section id="git-conventions">
+        <span class="eyebrow">turn history into rules</span>
+        <h2>Let the Git history teach it the conventions</h2>
+        <div class="prompt">Read the last 200 commits with git log. Describe our conventions
+for branch names, commit messages and PR titles, with three real
+examples of each. Then draft a "Git" section for
+.github/copilot-instructions.md. Mark anything you're unsure of.</div>
+        <p>You don't have to know a team's conventions to write them down. The history already does.</p>
+        <aside class="notes">
+          Tribal knowledge that leaves a trail. The AI drafts it, the team corrects
+          it, and it goes in the file. The same trick works for code style: "look at
+          the last 20 merged PRs and describe what reviewers keep asking for".
+        </aside>
+      </section>
+
+      <section id="write-rules">
+        <span class="eyebrow">writing rules</span>
+        <h2>Write what it can't infer</h2>
+        <table style="font-size:0.68em">
+          <tr><th>Instead of</th><th>Write</th></tr>
+          <tr><td class="bad">Follow best practices for errors.</td><td>Return <code>Result</code> from service methods. Don't throw across service boundaries.</td></tr>
+          <tr><td class="bad">Run the tests.</td><td>Run <code>./gradlew test</code>. Integration tests need a database, so skip them and say so.</td></tr>
+          <tr><td class="bad">Don't touch generated code.</td><td>Files in <code>src/generated/</code> come from <code>api/*.yaml</code>. Edit the YAML and run <code>make codegen</code>.</td></tr>
+          <tr><td class="bad">NEVER use System.out!!!</td><td>Log through <code>AuditLogger</code>, because audit logs feed compliance reports.</td></tr>
+        </table>
+        <blockquote style="font-size:0.62em">“Include the reasoning behind rules.” · “Focus on non-obvious rules.”
+        <cite>VS Code docs, custom instructions</cite></blockquote>
+        <aside class="notes">
+          Specific, checkable, with a reason, and with the alternative. The reason
+          lets it handle the case you didn't list. Shouting doesn't help: newer
+          models take emphatic language too literally (Anthropic's prompting docs
+          now advise plain wording). Examples are made up for a generic repo.
+        </aside>
+      </section>
+
+      <section id="lifespan">
+        <span class="eyebrow">a rule I use everywhere</span>
+        <h2>Build for how long it will live</h2>
+        <div class="filename">instructions</div>
+        <pre><code class="language-markdown">## How to approach a change
+- First decide whether this is a one-off (a script, an investigation,
+  a migration) or something that will live in the codebase.
+- If it will live on, build it properly: follow the existing
+  structure, add tests, and leave no workaround for someone else
+  to clean up.
+- If you can't tell which it is, ask.</code></pre>
+        <p>Left alone, an agent optimises for finishing the task in front of it.</p>
+        <aside class="notes">
+          Personal recommendation, from experience: AI wants to get to "done" as
+          fast as possible, which produces patchwork that someone has to rework
+          into proper practice later. This rule makes it stop and classify the work
+          first. It can go in the team file or in your personal one.
+        </aside>
+      </section>
+
+      <section id="which-file">
+        <span class="eyebrow">two files, two audiences</span>
+        <h2><code>copilot-instructions.md</code> or <code>AGENTS.md</code>?</h2>
+        <table style="font-size:0.74em">
+          <tr><th></th><th><code>.github/copilot-instructions.md</code></th><th><code>AGENTS.md</code></th></tr>
+          <tr><td>Who reads it</td><td>Copilot: chat, cloud agent, code review, CLI</td><td>Copilot and most other AI coding tools</td></tr>
+          <tr><td>GitHub's rule of thumb</td><td>“Copilot, always know this for this repository”</td><td>“Any agent, always know this”</td></tr>
+          <tr><td>Per folder</td><td>No. Use <code>*.instructions.md</code> with <code>applyTo</code></td><td>Yes. The nearest file takes precedence</td></tr>
+        </table>
+        <p>When both exist, both are loaded. Keep them from contradicting each other.</p>
+        <aside class="notes">
+          AGENTS.md is an open, cross-tool format (stewarded under the Linux
+          Foundation), not Copilot's version of CLAUDE.md. Copilot also reads
+          CLAUDE.md. A practical split: project facts any tool needs go in AGENTS.md;
+          Copilot-specific behaviour goes in copilot-instructions.md.
+          VS Code: "Applicable instruction sources are additive. Do not depend on a
+          file order or precedence rule to resolve conflicts."
+        </aside>
+      </section>
+
+      <section id="fix-loop">
+        <span class="eyebrow">the habit that matters most</span>
+        <h2>When it gets something wrong, fix the harness</h2>
+        <ol class="steps">
+          <li>Notice the mistake</li>
+          <li>Correct the output</li>
+          <li>Ask why it happened: what didn't it know?</li>
+          <li>Add one line to the harness, so no session repeats it</li>
+        </ol>
+        <p class="fragment">Fixing the output helps you once. Fixing the harness helps everyone, every time after.</p>
+        <aside class="notes">
+          This is how unknown knowns get captured. If you know the fix, write the
+          fix. If you only know it's wrong, write what to avoid and why. You can ask
+          the agent itself: "Add a line to copilot-instructions.md so this doesn't
+          happen again", then review the line.
+        </aside>
+      </section>
+
+      <section id="personal">
+        <span class="eyebrow">your style, the team's rules</span>
+        <h2>Your instructions and the team's</h2>
+        <table style="font-size:0.7em">
+          <tr><th></th><th>Personal</th><th>Team</th></tr>
+          <tr><td>Where</td><td><code>~/.copilot/copilot-instructions.md</code><br><code>~/.copilot/instructions/*.instructions.md</code></td><td><code>.github/copilot-instructions.md</code>, <code>AGENTS.md</code></td></tr>
+          <tr><td>Holds</td><td>How you like to work, on every repo</td><td>How this repo works</td></tr>
+          <tr><td>Owned by</td><td>You</td><td>The repo owner or team lead, through PRs</td></tr>
+        </table>
+        <div class="filename">last line of your personal file</div>
+        <pre><code class="language-markdown">- If these conflict with the repository's instructions, follow the repository's.</code></pre>
+        <aside class="notes">
+          Show one of your own personal principle files here. Ask Copilot to compare
+          it against the team file and keep only what the team file doesn't cover.
+          Why the last line: VS Code loads all instruction files together and says
+          there is no precedence order. So you write the precedence in yourself.
+          The ~/.copilot paths are for Copilot-harness sessions; Local sessions keep
+          user instructions in the profile (Configure Instructions › New › User).
+          A git-ignored file inside the repo isn't documented to load; the user
+          folder is the safer place.
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         7 · A REAL TASK: ONBOARDING
+         ================================================================ -->
+    <section>
+      <section id="onboarding">
+        <span class="eyebrow">a real task</span>
+        <h2>Write the onboarding guide this repo never had</h2>
+        <div class="prompt">Write ONBOARDING.md for a developer joining this team: what the repo
+does, prerequisites, setup, how to build, run and test, a map of the
+folders, and three good first issues. Cite the files you used, and
+mark anything you inferred rather than read.</div>
+        <aside class="notes">
+          Run it live in Agent mode. While it works, point out the approvals as
+          they come up, and the hooks firing if it tries something protected.
+        </aside>
+      </section>
+
+      <section id="read-working">
+        <span class="eyebrow">reading the work</span>
+        <h2>Check the working, not just the answer</h2>
+        <div class="cols-3" style="grid-template-columns:repeat(4,1fr)">
+          <div class="panel"><h3>Explore</h3><p class="small">Which files did it read? Did it miss the obvious one?</p></div>
+          <div class="panel"><h3>Plan</h3><p class="small">Would you have done it in this order?</p></div>
+          <div class="panel"><h3>Implement</h3><p class="small">Did it stay in scope?</p></div>
+          <div class="panel"><h3>Verify</h3><p class="small">Did it run anything, or only say it did?</p></div>
+        </div>
+        <p>A right answer reached the wrong way will be wrong next time.</p>
+        <aside class="notes">
+          The maths-homework point: marks for the working, not only the final
+          number. Read what the agent did, not only its summary. This is the loop
+          I use for every task: explore, plan, implement, verify.
+        </aside>
+      </section>
+
+      <section id="prompt-skill-agent">
+        <span class="eyebrow">keeping it current</span>
+        <h2>Prompt file, skill, or custom agent?</h2>
+        <table style="font-size:0.68em">
+          <tr><th></th><th>Prompt file</th><th>Skill</th><th>Custom agent</th></tr>
+          <tr><td>VS Code's summary</td><td>“Run a saved task on demand”</td><td>“Teach the agent a workflow with supporting resources”</td><td>“Use a specialized role and tool configuration”</td></tr>
+          <tr><td>Starts when</td><td>You type <code>/name</code></td><td>The task matches, or you type <code>/name</code></td><td>You pick it, or another agent delegates</td></tr>
+          <tr><td>Can bring</td><td>One prompt</td><td>Instructions, scripts, templates</td><td>Its own tools and model</td></tr>
+          <tr><td>Status</td><td>Deprecated in VS Code; Local sessions only</td><td>Works everywhere</td><td>Works everywhere</td></tr>
+        </table>
+        <aside class="notes">
+          The guide will go stale as the code changes. What should keep it current?
+          Ask the room which they'd pick. A prompt file fits the job, but VS Code is
+          retiring them, and a skill does the same thing and is also invoked as
+          /name. So this example uses a skill.
+        </aside>
+      </section>
+
+      <section id="skill">
+        <span class="eyebrow">the skill</span>
+        <h2><code>/update-onboarding-doc</code></h2>
+        <div class="filename">.github/skills/update-onboarding-doc/SKILL.md</div>
+        <pre><code class="language-markdown">---
+name: update-onboarding-doc
+description: Updates ONBOARDING.md to match recent repository changes. Use when
+  asked to refresh the onboarding guide, or after new setup steps, renamed
+  commands, or new environment variables.
+---
+1. List recent changes: `git log --since="14 days ago" --name-status --no-merges`.
+   Focus on build files, setup scripts, CI workflows and top-level docs.
+2. Read ONBOARDING.md.
+3. Update only what a new joiner would hit: new prerequisites, renamed
+   commands, new variables, removed steps. Keep the headings and tone.
+4. Edit only ONBOARDING.md.
+5. Reply with one line per edit and the commit that caused it.</code></pre>
+        <aside class="notes">
+          The name must match the folder name, lowercase with hyphens, or the skill
+          silently fails to load. The description decides when Copilot picks it up
+          on its own, so write it like a search query. You can also generate one:
+          /create-skill and describe it.
+        </aside>
+      </section>
+
+      <section id="stale-hook">
+        <span class="eyebrow">nobody remembers to run it</span>
+        <h2>Let a hook notice when it's stale</h2>
+        <div class="cols-wide-left">
+          <div>
+            <div class="filename">.github/hooks/onboarding-staleness.cjs</div>
+            <pre><code class="language-javascript">const { execSync } = require('node:child_process');
+const git = cmd =&gt; {
+  try { return execSync(`git ${cmd}`, { encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch { return ''; }
+};
+const last = git('log -1 --format=%H -- ONBOARDING.md');
+const behind = last
+  ? Number(git(`rev-list --count ${last}..HEAD`)) : 0;
+if (behind &gt; 30) {
+  const note = `ONBOARDING.md is ${behind} commits behind. ` +
+               'Suggest running /update-onboarding-doc.';
+  process.stdout.write(JSON.stringify({
+    additionalContext: note,
+    hookSpecificOutput: { hookEventName: 'SessionStart',
+                          additionalContext: note } }));
+}</code></pre>
+          </div>
+          <div>
+            <p>Registered under <code>sessionStart</code>, it runs once at the start of each session.</p>
+            <p>When the guide falls behind, the agent starts the session knowing it.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          SessionStart can add context in both Local and Copilot sessions. The script
+          was tested on a repo 31 commits behind, an empty repo and a non-repo folder;
+          it stays silent on any git error. Register it in guardrails.json next to the
+          others: "sessionStart": [{ "type": "command", "cwd": ".github/hooks",
+          "command": "node onboarding-staleness.cjs" }].
+        </aside>
+      </section>
+
+      <section id="cloud">
+        <span class="eyebrow">or take yourself out of the loop</span>
+        <h2>Let GitHub keep it current</h2>
+        <div class="cols">
+          <div class="panel">
+            <h3>Copilot cloud agent automation</h3>
+            <ul class="small">
+              <li>Runs weekly, or when a PR opens</li>
+              <li>Uses the repo's skills, so it can run the same steps</li>
+              <li>Opens a pull request for a human to merge</li>
+              <li>Lives in your account, not in Git. Repo admins can't see it</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Agentic Workflow <span class="chip grey">preview</span></h3>
+            <pre style="font-size:0.42em"><code class="language-yaml">on: weekly on monday
+permissions:
+  contents: read
+  copilot-requests: write
+safe-outputs:
+  create-pull-request:
+    allowed-files: [ONBOARDING.md]</code></pre>
+            <p class="small">A file in the repo. Can only change the files you list, and opens a draft PR.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          Either way the change arrives as a pull request: the machine proposes, a
+          person decides. Automations need a private or internal repo, and PRs are
+          attributed to whoever created the automation. Agentic Workflows are in
+          public preview; the snippet is trimmed, and the full version is in
+          research/round3-customizations-and-automation.md §6b (run gh aw compile
+          before using it).
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         8 · MANY NARROW AGENTS
+         ================================================================ -->
+    <section>
+      <section id="narrow">
+        <span class="eyebrow">while that runs</span>
+        <h2>Narrow agents beat broad ones</h2>
+        <div class="cols ba">
+          <div class="panel before">
+            <span class="ba-label">broad</span>
+            <p>“Find the problems in this codebase.”</p>
+            <p class="small">Different every run. Mostly style comments.</p>
+          </div>
+          <div class="panel after">
+            <span class="ba-label">narrow</span>
+            <p>“Find tests that can never fail: no assertions, skipped, or mocking the thing under test.”</p>
+            <p class="small">Repeatable. Each finding is checkable.</p>
+          </div>
+        </div>
+        <p>The more precisely you specify the job, the more consistent the result.</p>
+        <aside class="notes">
+          Bring it back to the room while the onboarding task runs: let's find the
+          issues in this repo. One agent asked for everything gives you a different
+          list every time. Several agents with one job each give you something you
+          can act on.
+        </aside>
+      </section>
+
+      <section id="auditors">
+        <span class="eyebrow">one job each</span>
+        <h2>Seven auditors</h2>
+        <table style="font-size:0.68em">
+          <tr><th>Auditor</th><th>Looks for</th></tr>
+          <tr><td>Code quality</td><td>Duplication, long functions, dead code, TODO and FIXME comments</td></tr>
+          <tr><td>Design</td><td>God classes, cyclic dependencies, layers calling past each other</td></tr>
+          <tr><td>Tests</td><td>Untested critical paths, skipped tests, tests with no assertions</td></tr>
+          <tr><td>Documentation</td><td>Setup steps that no longer work, undocumented APIs, comments that contradict the code</td></tr>
+          <tr><td>Build and dependencies</td><td>Unpinned or end-of-life packages, unused dependencies, fragile build steps</td></tr>
+          <tr><td>Security</td><td>Hardcoded secrets, injection-prone string building, missing authorisation checks</td></tr>
+          <tr><td>Error handling</td><td>Swallowed exceptions, unchecked nulls, leaked connections and files</td></tr>
+        </table>
+        <p class="note">Categories adapted from the technical debt taxonomy of Alves et al. (2014, 2016), plus security.</p>
+        <aside class="notes">
+          Every auditor is read-only, writes findings to its own file with
+          file:line evidence, and lists anything outside its lane under "Handoffs"
+          instead of chasing it. The full list of what each must not do is in
+          research/round3-framing-taxonomy-changes.md §2.2.
+          Ask the room which categories matter most for their code.
+        </aside>
+      </section>
+
+      <section id="auditor-file">
+        <span class="eyebrow">one auditor, as a file</span>
+        <h2>A custom agent with one job</h2>
+        <div class="cols-wide-left">
+          <div>
+            <div class="filename">.github/agents/test-auditor.agent.md</div>
+            <pre><code class="language-markdown">---
+name: Test Auditor
+description: Finds weak or missing tests. Reports only.
+tools: ['read', 'search', 'edit']
+---
+Audit the tests in the requested scope. Report:
+- critical paths with no tests
+- skipped or disabled tests
+- tests with no assertions
+- tests that call real external services
+
+Write findings only to docs/audit/tests.md, one per line:
+file:line · severity · evidence · why it matters.
+Do not edit any other file. Do not fix anything.
+Note problems outside testing under "Handoffs".</code></pre>
+          </div>
+          <div>
+            <p class="small">The tool list can't limit edits to one file. Back the instruction with a setting:</p>
+            <div class="filename">settings.json</div>
+            <pre style="font-size:0.42em"><code class="language-json">"chat.tools.edits.autoApprove": {
+  "**/*": false,
+  "docs/audit/**": true
+}</code></pre>
+            <p class="note">Edits elsewhere now stop and ask.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          Same layering as the hooks: the instruction asks, the setting makes any
+          other edit ask for approval. A fully read-only version drops 'edit' and
+          reports in chat instead. Generate the other six by asking Copilot to copy
+          this file for each category in the table.
+        </aside>
+      </section>
+
+      <section id="parallel">
+        <span class="eyebrow">side by side</span>
+        <h2>Run them in parallel</h2>
+        <ol class="steps">
+          <li>Start each auditor in its own session. <span class="kbd">Alt</span>+<span class="kbd">Enter</span> sends it to the background</li>
+          <li>Watch them in the sessions list</li>
+          <li>Give each its own output file. Sessions in one folder edit the same files</li>
+          <li>Merge the reports yourself, or ask one more agent to</li>
+        </ol>
+        <p class="note">Worktree sessions always run with every action approved. Use a folder session if you want the approval prompts.</p>
+        <aside class="notes">
+          Start two or three live and come back to them at the end. Why separate
+          files: VS Code's docs say two sessions in the same folder "affect the same
+          files", and nothing coordinates their writes.
+        </aside>
+      </section>
+
+      <section id="pattern">
+        <span class="eyebrow">the same idea, further</span>
+        <h2>From spec to verified change</h2>
+        <table style="font-size:0.78em">
+          <tr><th>Stage</th><th>A harness piece that helps</th></tr>
+          <tr><td>Spec</td><td>A skill that writes specs in your team's format</td></tr>
+          <tr><td>Plan</td><td>The Plan agent, or a custom agent with read-only tools</td></tr>
+          <tr><td>Implement</td><td>Instructions with your implementation rules, worked in phases</td></tr>
+          <tr><td>Verify</td><td>Written acceptance criteria, a reviewer agent with fresh context, a Stop hook that runs the tests</td></tr>
+        </table>
+        <aside class="notes">
+          This is the menu, not a plan. Every row is something the team could build.
+          Ask which one they'd want first. (Their answers feed the next slide.)
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         9 · CLOSE
+         ================================================================ -->
+    <section>
+      <section id="board-end">
+        <span class="eyebrow">back to the board</span>
+        <h2>What do we know now?</h2>
+        <div class="board" data-key="contract" data-seeds="grid">
+          <div class="bq" data-q="kk"><h3>Known knowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="uk"><h3>Unknown knowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="ku"><h3>Known unknowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="bq" data-q="uu"><h3>Unknown unknowns</h3><ul></ul><input placeholder="type, then Enter"></div>
+          <div class="board-tools" style="grid-column:1/-1"><button class="seed-toggle">examples</button></div>
+        </div>
+        <aside class="notes">
+          Same board as the start. Which items are now written into the harness?
+          Which moved quadrant during the session? Screenshot it.
+        </aside>
+      </section>
+
+      <section id="requests">
+        <span class="eyebrow">your turn</span>
+        <h2>What should we dig into?</h2>
+        <div class="board one" data-key="requests">
+          <div class="bq" data-q="all"><ul></ul><input placeholder="a topic, a question, a problem you want solved · Enter"></div>
+        </div>
+        <aside class="notes">
+          Collect topics, questions and blockers. This list decides what comes next.
+          Also ask: "What would stop you using this tomorrow?"
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         APPENDIX
+         ================================================================ -->
+    <section>
+      <section id="sources">
+        <span class="eyebrow">appendix · sources</span>
+        <h2>Where the claims come from</h2>
+        <ul class="small">
+          <li>Knowns and unknowns: Thariq Shihipar, “A field guide to Claude Fable 5: Finding your unknowns”, claude.com, July 2026 · research/round3-framing-taxonomy-changes.md §1</li>
+          <li>Changes since August, auditor categories: research/round3-framing-taxonomy-changes.md §2–3</li>
+          <li>Hooks, context assembly, memory: research/round3-hooks-context-memory.md</li>
+          <li>Skills, prompt files, agents, parallel sessions, automations, instructions: research/round3-customizations-and-automation.md</li>
+          <li>Session targets, <code>/init</code>, approval settings: research/round2-vscode-copilot-setup.md</li>
+        </ul>
+        <p class="note">Copilot changes monthly. Every setting here was checked against the live docs on the date in the deck log.</p>
+      </section>
+
+      <section id="deck-log">
+        <span class="eyebrow">appendix · deck log</span>
+        <h2>Deck log</h2>
+        <table>
+          <tr><th>Date</th><th>Change</th></tr>
+          <tr><td>1 Oct 2026</td><td>Part 1. Facts checked against VS Code 1.140 docs and the GitHub changelog.</td></tr>
+        </table>
+      </section>
+    </section>
+
+  </div>
+</div>
+
+<script src="../vendor/reveal/reveal.js"></script>
+<script src="../vendor/reveal/plugin/notes.js"></script>
+<script src="../vendor/reveal/plugin/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.05,
+    hash: true,
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    backgroundTransition: 'none',
+    pdfSeparateFragments: false,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+
+  /* ---- interactive widgets; state lives in this browser only ---- */
+  const memory = {};
+  const load = (k, d) => {
+    if (k in memory) return memory[k];
+    try { const v = localStorage.getItem('byoh:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; }
+  };
+  const save = (k, v) => {
+    memory[k] = v;
+    try { localStorage.setItem('byoh:' + k, JSON.stringify(v)); } catch (e) {}
+  };
+
+  // Starter examples for a quiet room, shown dashed
+  const SEEDS = {
+    grid: {
+      kk: ['How to run the tests', 'Which branch to work from', 'What the service is for'],
+      ku: ['What the legacy module does', 'Why the build is slow', 'Which config production uses'],
+      uk: ['That test is flaky, just rerun it', 'We stopped using that library', 'Ask the DBA before schema changes', 'Commit messages start with the ticket ID'],
+      uu: ['A dependency changed behaviour in a minor release', 'A cleanup command deleted more than expected', 'A token sitting in an environment variable']
+    }
+  };
+
+  function renderBoards() {
+    document.querySelectorAll('.board').forEach(board => {
+      const seedsOn = board.dataset.seeds && load(board.dataset.key + ':seeds', false);
+      board.querySelectorAll('.bq').forEach(q => {
+        const key = board.dataset.key + ':' + q.dataset.q;
+        const ul = q.querySelector('ul');
+        ul.innerHTML = '';
+        load(key, []).forEach((text, i) => {
+          const li = document.createElement('li');
+          li.textContent = text;
+          li.title = 'click to remove';
+          li.onclick = () => { const items = load(key, []); items.splice(i, 1); save(key, items); renderBoards(); };
+          ul.appendChild(li);
+        });
+        if (seedsOn) {
+          (SEEDS[board.dataset.seeds][q.dataset.q] || []).forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            li.className = 'seed';
+            li.title = 'example · click to add it to the board';
+            li.onclick = () => { save(key, load(key, []).concat(text)); renderBoards(); };
+            ul.appendChild(li);
+          });
+        }
+      });
+      const toggle = board.querySelector('.seed-toggle');
+      if (toggle) toggle.textContent = seedsOn ? 'hide examples' : 'examples';
+    });
+  }
+  document.querySelectorAll('.board .bq input').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || !input.value.trim()) return;
+      const key = input.closest('.board').dataset.key + ':' + input.closest('.bq').dataset.q;
+      save(key, load(key, []).concat(input.value.trim()));
+      input.value = '';
+      renderBoards();
+    });
+  });
+  document.querySelectorAll('.board .seed-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const k = btn.closest('.board').dataset.key + ':seeds';
+      save(k, !load(k, false));
+      renderBoards();
+    });
+  });
+
+  renderBoards();
+  Reveal.on('slidechanged', renderBoards);
+</script>
+</body>
+</html>
