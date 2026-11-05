@@ -417,3 +417,14 @@ html, body, .reveal-viewport { background: var(--bg); }
 .reveal table td.hl { background: var(--tint); }
 .reveal table.compact { font-size: 0.56em; }
 .reveal table.compact td, .reveal table.compact th { padding: 0.3em 0.5em; }
+
+/* Copilot as the reference point: highlighted chip, table row and agenda list */
+.tag.us { background: var(--blue); border-color: var(--blue); color: #fff; }
+.reveal table tr.us td { background: var(--tint); }
+.reveal table tr.us td:first-child { color: var(--blue); }
+.reveal ol.agenda { font-size: 0.8em; padding-left: 1.6em; }
+.reveal ol.agenda li { margin: 0.32em 0; color: var(--muted); }
+.reveal ol.agenda li b { color: var(--ink); margin-right: 0.35em; }
+.cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6em; align-items: stretch; margin: 0.3em 0 0.6em 0; }
+.cols-4 .panel { margin: 0; padding: 0.55em 0.75em; }
+.cols-4 .panel h3 { font-size: 0.9em; margin-bottom: 0.2em; }
