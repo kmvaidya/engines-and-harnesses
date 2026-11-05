@@ -85,8 +85,11 @@ the site is static files at the repo root.
 index.html            the whole deck (slides + speaker notes)
 css/theme.css         custom dark theme ("shop manual" — amber engine, teal harness)
 vendor/               reveal.js 5.2.1 + plugins + fonts, vendored for offline
-research/             38 sourced research files + INDEX.md — the bibliography;
-                      every perishable fact on a slide traces here (fetched 2026-08-12)
+build-your-own-harness/  follow-up series, Part 1 (Oct 2026)
+state-of-harnesses/   landscape talk: coding harnesses in Nov 2026
+research/             sourced research files in rounds + INDEX.md — the bibliography;
+                      every perishable fact on a slide traces here (round 1 fetched
+                      2026-08-12; later rounds listed in INDEX.md)
 kahoot-questions.md   8 draft quiz questions, gimme → spicy
 BLINDSPOTS.md         pre-build blind-spot pass on the brief, with the calls made
 ASSUMPTIONS.md        decisions made without asking, logged

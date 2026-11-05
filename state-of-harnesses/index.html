@@ -1,0 +1,2099 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The State of the Harness</title>
+  <meta name="description" content="Coding agents in November 2026: what they share, where they split, and where they are going.">
+  <link rel="stylesheet" href="../vendor/reveal/reset.css">
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/reveal/plugin/highlight.css">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+<!-- PART 01: title slide and section 1, "The loop" (ids: title, loop-open, loop-same, loop-around, loop-matters) -->
+
+    <!-- ================================================================
+         TITLE
+         ================================================================ -->
+    <section>
+      <section class="opener" id="title">
+        <span class="eyebrow">lunch &amp; learn</span>
+        <h1>The State of<br>the Harness</h1>
+        <p class="sub">Coding agents in November 2026: what they share, where they split,
+        and where they are going.</p>
+        <p class="byline">by <b>Kay</b> · november 2026</p>
+        <aside class="notes">
+          <p>Say hi. This is the third talk in the series. In August, Engines &amp; Harnesses
+          said the model is the engine and everything around it is the harness. In October,
+          Build Your Own Harness had us writing Copilot instructions, hooks, skills and agents
+          for a real repo.</p>
+          <p>Today we step back and look at every major coding agent, closed and open source:
+          what they have in common, where they differ, what their makers say they believe, and
+          where they are heading. Nobody needs to install anything. Copilot is still our tool.
+          The aim is that when you read news about Cursor or Claude Code or Codex, you know
+          where it fits.</p>
+          <p>By coding agent I mean an AI tool that reads your repo, edits files and runs
+          commands for you, such as Copilot, Cursor, Claude Code or Codex.</p>
+          <p>Everything on these slides carries a date, because this field changes monthly.
+          The research stops on 4 November 2026.</p>
+          <p>Backup (do not read aloud): RIGHT moves between sections, DOWN goes deeper inside a
+          section, ESC shows the whole map. Each content slide's notes have a spoken part of
+          about 180 words, then a backup paragraph like this one for questions.</p>
+          <p>Source: research/round5-synthesis.md (fetched 2026-11-04).</p>
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         1 · THE LOOP
+         ================================================================ -->
+    <section>
+      <section class="opener" id="loop-open">
+        <span class="secnum">01</span>
+        <h1>The loop</h1>
+        <p class="sub">The part every coding agent has in common, and how much the code
+        around it changes the result.</p>
+        <aside class="notes">
+          <p>About four minutes. First the one mechanism that every agent in this talk shares,
+          then what vendors build around it, then what the evidence says about whether that
+          extra code changes results.</p>
+        </aside>
+      </section>
+
+      <section id="loop-same">
+        <span class="eyebrow">01 · the loop</span>
+        <h2>Every coding agent runs the same loop</h2>
+        <div class="loop">
+          <div class="node model">Model<small>picks the next step</small></div>
+          <div class="arrows">tool call →<br>← result</div>
+          <div class="node">Harness<small>runs the tool, returns the output</small></div>
+        </div>
+        <p class="small">A <strong>tool call</strong> is the model asking the harness to act for it:
+        read this file, run these tests. The loop ends when the model replies without one.</p>
+        <blockquote>“It's an LLM, a loop, and enough tokens.”
+        <cite>Thorsten Ball, Amp · “How to Build an Agent” · April 2025</cite></blockquote>
+        <p class="src">Ball, ampcode.com, Apr 2025 · Claude Agent SDK docs and GitHub Copilot SDK docs, read Nov 2026</p>
+        <aside class="notes">
+          <p>Walk the diagram with a real task. You type "fix the failing test". The model
+          can't touch your machine, so it answers with a tool call, a structured request such
+          as "run mvn test". The harness runs the command and sends the output back. The model
+          reads the failure, asks to open a file, asks for an edit, and asks to run the tests
+          again. When they pass, it writes you a plain reply with no tool call in it, and the
+          loop stops.</p>
+          <p>The vendors describe it in nearly the same words. GitHub's Copilot SDK docs: "The
+          CLI is purely mechanical: 'model asked for tools → execute → call model again.' The
+          model is the decision-maker for when to stop."</p>
+          <p>Thorsten Ball, of Amp, wrote the quote in April 2025, in a post that builds a
+          working code-editing agent in "less than 400 lines of code, most of which is
+          boilerplate." LLM stands for large language model, the AI model itself. A token is a
+          chunk of text, about a word or part of one, so "enough tokens" means enough room and
+          budget for the conversation to keep going.</p>
+          <p>Backup (do not read aloud): Claude Code's Agent SDK docs say the same thing:
+          "Claude continues calling tools and processing results until it produces a response
+          with no tool calls." Some harnesses also give the model an explicit "I'm finished"
+          tool. As of November 2026, Copilot has task_complete, Gemini CLI has complete_task,
+          Cline has submit_and_exit, OpenHands has FinishTool. Ball's post is more than six
+          months old, but the core it describes has not changed.</p>
+          <p>Source: research/round5-synthesis.md §3.1; round5-claude-code.md §2;
+          round5-copilot-architecture.md §2.1; round5-convergence-standards.md §5 and §5.1;
+          round5-platforms-research.md §3.8 (and its verification pass, item 8, for the two
+          line counts).</p>
+        </aside>
+      </section>
+
+      <section id="loop-around">
+        <span class="eyebrow">01 · the loop</span>
+        <h2>Most of the code lives around the loop</h2>
+        <blockquote>“Most of the code, however, lives in the systems around this loop.”
+        <cite>Liu, Zhao, Shang, Shen · “Dive into Claude Code”, arXiv 2604.14228 · v3, October 2026</cite></blockquote>
+        <div class="rings">
+          <div><b>Instructions</b>Repo rules, such as AGENTS.md</div>
+          <div><b>Code search</b>Grep, or an index</div>
+          <div><b>Editing</b>How the model writes a change</div>
+          <div><b>Context</b>What the model sees at once, summarised when full</div>
+          <div><b>Subagents</b>Helpers that start fresh and report back</div>
+          <div><b>Plan mode</b>Write tools switched off</div>
+          <div><b>Permissions</b>Who approves; a sandbox fences commands</div>
+          <div><b>Extensions</b>MCP (outside tools), skills, hooks</div>
+        </div>
+        <p class="src">Liu et al., arXiv 2604.14228, v3 Oct 2026 · layers drawn from 2026 source studies and vendor docs</p>
+        <aside class="notes">
+          <p>The loop from the last slide fits in a few hundred lines. A product like Claude
+          Code is far bigger. Four researchers read Claude Code's publicly available source and
+          found the loop at the centre. Around it sat seven permission modes, five layers of
+          code for summarising old conversation, four ways to extend it, and code to run helper
+          agents.</p>
+          <p>The eight boxes are the layers most harnesses add. Instructions means the system
+          prompt, the standing instructions the harness sends to the model ahead of your
+          message, plus your repo's rules, like the AGENTS.md files from October. The context
+          window is everything the model can see at once, measured in tokens; when it fills up,
+          the harness summarises the older part, and that is compaction. Subagents get their
+          own fresh context and hand back a short summary. A sandbox is a fence the operating
+          system enforces around the agent's commands. MCP, the Model Context Protocol, is the
+          standard way to plug in outside tools.</p>
+          <p>The rest of the talk compares these boxes across vendors, and the people who build
+          them disagree in public about how much to build.</p>
+          <p>Backup (do not read aloud): the other boxes. Code search is how the agent finds
+          things in a big repo. Editing is the exact format the model writes changes in. Plan
+          mode takes away the write tools so the agent can only look and propose. You built
+          skills and hooks in October. The quote was re-checked against the paper's v3 page on
+          5 November 2026. The eight layers combine several source studies, so no single paper
+          lists exactly these eight.</p>
+          <p>Source: research/round5-convergence-standards.md §5 and §5.2 (and §6 table for the
+          paper, plus its verification pass line of 2026-11-05); round5-synthesis.md §3.3.</p>
+        </aside>
+      </section>
+
+      <section id="loop-matters">
+        <span class="eyebrow">01 · the loop</span>
+        <h2>The harness alone moves results when it fixes or breaks something, and barely otherwise</h2>
+        <table>
+          <tr><th>Study</th><th>Same model, harness changed</th><th>Result</th></tr>
+          <tr><td>Lewis · Aug 2026</td><td>Harness trims old tool output</td><td>Small context window: 43 → 72 of 169 tasks solved. Large window: 102 vs 101</td></tr>
+          <tr><td>Scale AI · Oct 2026</td><td>Three open-weight models, three harnesses each</td><td>Which harness explained 0.3% of the spread in results; which task, 32%</td></tr>
+          <tr><td>Anthropic · Apr 2026</td><td>Three harness changes</td><td>Users reported a worse model; the same model through the API was unaffected</td></tr>
+        </table>
+        <p class="src">Lewis, arXiv 2608.26218, Aug 2026 · Scale AI, arXiv 2610.24206, Oct 2026 · Anthropic, April 23 postmortem, 2026 · notes: OpenAI, “Codex as a platform”, Aug 2026</p>
+        <aside class="notes">
+          <p>The first two rows are benchmarks: fixed sets of tasks with known answers, used to
+          score models. In both, the model stays the same and only the harness changes.</p>
+          <p>First row: one author ran an open-weight model, one anyone can download and run,
+          on their own machine with the context window set small on purpose. A harness that
+          trimmed old tool output took it from 43 to 72 solved tasks out of 169. With a large
+          window the same change did nothing: 102 against 101.</p>
+          <p>Second row: Scale AI ran three open-weight models in three harnesses each and
+          worked out what explained the results. The task explained about 32%, the harness
+          0.3%. The harness did change cost: one model used twice as many tokens per solved
+          task in one harness as in another.</p>
+          <p>Third row: in April, users said Claude had got worse. Anthropic traced it to three
+          harness changes, including a lower default effort setting and a system-prompt line
+          asking for shorter answers. The model served through the API was untouched: "The API
+          was not impacted."</p>
+          <p>Next section: who builds these harnesses.</p>
+          <p>Backup (do not read aloud). Row one details: about 20,000 tokens for the small
+          window, 262,000 for the large one. Row two: SWE-Bench Pro, 642 tasks, harnesses
+          mini-swe-agent, Pi and OpenCode; the model explained 2.7%; the cost example is 1.3
+          million tokens per solved task in Pi against 2.6 million in mini-swe-agent. Row three:
+          default effort (how long the model thinks before it answers) dropped from high to
+          medium on March 4. A change on March 26 was meant to clear the model's earlier
+          reasoning (the thinking it had written out) once after an idle hour; a bug made it
+          clear that reasoning on every turn for the rest of the session. The shorter-answers
+          line went in on April 16. The postmortem is older than six months and reports what
+          users noticed; it has no benchmark score. OpenAI reports a bigger jump on its own
+          harness: in August it said keeping reasoning between turns and adding compaction took
+          GPT-5.6 Sol from 13.3% to 38.3% on ARC-AGI-3, a reasoning benchmark, with six times
+          fewer output tokens. Present that as OpenAI's claim; both changes manage the context
+          window, the same limit as row one. If someone pushes: the August study used four-bit
+          (compressed) models served locally, and the improved harness also ran longer (4.6
+          solver wall-clock hours against 1.3). Its tasks come from SWE-bench Verified, which
+          has documented answer-leakage problems; both arms ran the same tasks. Scale tested
+          open-weight models only, and that benchmark version is close to saturated, with
+          scores of 87% to 99%, so there is little room for any difference to show. Two things
+          not to say: don't say the harness matters more than the model as a general rule (the
+          one grid that shows that used near-tied models, 100 tasks and a weak baseline), and
+          don't use the "45.9% versus 55.4%" Claude Code figure that circulates (an aggregator
+          error; the corrected gap is 3.9 points).</p>
+          <p>Source: research/round5-harness-effect-evidence.md §2, §6.1, §6.3, §9 rows 1 to 3
+          and 8 to 10, §10, and its verification pass items 4, 5 and 9 (plus the 2026-11-05
+          line on solver hours); round5-claude-code.md §8 and verification item 10;
+          round5-openai-codex.md §8 and verification item 6. Postmortem wording re-checked
+          against anthropic.com/engineering/april-23-postmortem on 2026-11-05.</p>
+        </aside>
+      </section>
+    </section>
+
+
+<!-- Part 2 · The field (ids: field-open, field-map, field-openness, field-consolidation, field-usage) -->
+    <section>
+      <section class="opener" id="field-open">
+        <span class="secnum">02</span>
+        <h1>The field</h1>
+        <p class="sub">Who builds coding harnesses, how much of each you can read,
+        what was sold or shut down in 2026, and who uses what.</p>
+        <aside class="notes">
+          <p>About five minutes, four slides. Every product name here comes with a date,
+          because several of them changed owner in 2026.</p>
+        </aside>
+      </section>
+
+      <section id="field-map">
+        <span class="eyebrow">02 · the field</span>
+        <h2>Coding harnesses come from four kinds of builder</h2>
+        <div class="map">
+          <div class="group">
+            <h3>Model labs</h3>
+            <p>Build the model and the harness together</p>
+            <span class="tag">Claude Code</span><span class="tag open">Codex</span><span class="tag">Antigravity</span><span class="tag open">Gemini CLI</span><span class="tag gone">Jules</span>
+          </div>
+          <div class="group">
+            <h3>Platform owners</h3>
+            <p>Already own your repo, cloud or IDE</p>
+            <span class="tag">GitHub Copilot</span><span class="tag">AWS Kiro</span><span class="tag">JetBrains Junie / Air</span><span class="tag">GitLab Duo</span><span class="tag gone">Amazon Q Developer</span>
+          </div>
+          <div class="group">
+            <h3>Agent companies</h3>
+            <p>Sell the agent itself</p>
+            <span class="tag">Cursor</span><span class="tag">Devin</span><span class="tag">Factory</span><span class="tag">Amp</span><span class="tag open">Warp</span><span class="tag gone">Windsurf</span>
+          </div>
+          <div class="group">
+            <h3>Open source</h3>
+            <p>Anyone can read the code and point it at almost any model</p>
+            <span class="tag open">OpenCode</span><span class="tag open">Cline</span><span class="tag open">Pi</span><span class="tag open">Goose</span><span class="tag open">OpenHands</span><span class="tag open">Zed</span><span class="tag open">Aider</span><span class="tag open">Kilo Code</span><span class="tag gone">Roo Code</span><span class="tag gone">Continue</span>
+          </div>
+        </div>
+        <p class="note"><span class="tag open">open source</span> <span class="tag gone">closed, closing or renamed in 2026</span></p>
+        <p class="src">Vendor sites, repos and changelogs, checked 4 Nov 2026</p>
+        <aside class="notes">
+          <p>Walk the four boxes; don't read every chip.</p>
+          <p>Platform owners already sit in our workflow: GitHub has the repo, AWS the cloud,
+          JetBrains the IDE, GitLab the pipeline. Agent companies sell only the agent, though
+          Cursor and Cognition (the Devin company) now train models of their own. The open
+          source projects can be read line by line and pointed at almost any model
+          provider.</p>
+          <p>Green chips are open source: the code is published under a licence that lets
+          anyone read, change and reuse it. Codex counts because its core harness is
+          Apache-2.0. Copilot isn't green; the next slide explains why.</p>
+          <p>A struck-through chip means the product closed, is closing or lost its name this
+          year. Most of them are dated two slides on. Cursor, Pi and Kilo Code were also sold
+          this year but still ship, so they aren't struck.</p>
+          <p>Backup (do not read aloud): GitLab's docs say Duo Agent Platform reached general
+          availability in GitLab 18.8 (press reports date that January 2026), and flows started
+          from the GitLab UI run as CI/CD jobs. Warp's client app is AGPL-3.0, but Warp's
+          announcement doesn't say whether the agent backend is open too. Roo Code isn't on the
+          consolidation slide: it shut on May 15. Other names a bank gets pitched: IBM Bob,
+          Tabnine (which now ships a branded build of OpenCode as its command line tool),
+          Atlassian Rovo Dev (Atlassian says it "is reaching end of life as a standalone
+          product"), Alibaba's Qoder, xAI's Grok Build and Mistral Vibe. Details, as checked on
+          November 4, are in the enterprise research file.</p>
+          <p>Source: research/round5-synthesis.md §2 (tables of every harness);
+          round5-enterprise-harnesses.md Part A (A1 Tabnine, A2 GitLab Duo, A3 Rovo Dev);
+          round5-oss-ide-extensions.md short version, §2, §4;
+          round5-platforms-research.md §6 and verification pass (Warp licence);
+          round5-google-amazon-jetbrains.md §1 table (Jules, Q Developer).</p>
+        </aside>
+      </section>
+
+      <section id="field-openness">
+        <span class="eyebrow">02 · the field</span>
+        <h2>Openness is a scale, and Codex and Copilot sit in the middle of it</h2>
+        <div class="spectrum">
+          <div class="poles"><span>Closed source</span><span>Open, owned by a foundation</span></div>
+          <div class="track">
+            <span class="dot" style="left:6%">Claude Code</span>
+            <span class="dot low" style="left:13%">Cursor</span>
+            <span class="dot" style="left:20%">Antigravity</span>
+            <span class="dot low us" style="left:41%">Copilot</span>
+            <span class="dot" style="left:53%">Codex</span>
+            <span class="dot low" style="left:65%">Pi</span>
+            <span class="dot" style="left:78%">OpenCode</span>
+            <span class="dot low" style="left:93%">Goose</span>
+          </div>
+        </div>
+        <ul class="small">
+          <li>Codex: Apache-2.0 core, but “We do not accept external code contributions or pull requests.” (Aug 2026)</li>
+          <li>Copilot: VS Code's older Local harness is MIT; the Copilot harness, now the default in VS Code, the CLI and the app, is proprietary</li>
+          <li>OpenCode: MIT, 224,627 GitHub stars. Goose: Linux Foundation project since Dec 2025, repo moved Apr 2026</li>
+        </ul>
+        <p class="src">Licences and star counts from GitHub, 4 Nov 2026 · openai/codex contributing.md, Aug 2026 · GitHub Copilot docs and microsoft/vscode source, Nov 2026</p>
+        <aside class="notes">
+          <p>I placed each product on this line from its licence; nobody publishes a ranking
+          like it. MIT and Apache-2.0 are the two common permissive open source licences.</p>
+          <p>At the closed end, Claude Code's GitHub repo has no open source licence, and we
+          found no published harness code from Cursor or Antigravity, so those two sit
+          together.</p>
+          <p>In the middle, OpenAI publishes the Rust core of Codex under Apache-2.0, but since
+          August the repo accepts no outside code. For Copilot, the older Local harness in VS
+          Code is MIT and you can read its prompts. The Copilot harness, now the default in VS
+          Code and also used by the CLI and the app, ships under GitHub's own proprietary
+          licence. Section 3 comes back to it.</p>
+          <p>Toward the open end, Pi is MIT, and its author wrote "MIT, forever.
+          Non-negotiable." about the core. OpenCode is MIT and has the most stars of any coding
+          agent we checked. Goose went furthest: Block gave it to the Linux Foundation's Agentic
+          AI Foundation.</p>
+          <p>For the bank, open code means our security team can read what runs on a laptop.
+          The model still runs wherever the provider hosts it.</p>
+          <p>Backup (do not read aloud): Claude Code's repo has about 154,000 stars. We found no
+          public repo for Antigravity's command line tool, which replaced the open Gemini CLI
+          for consumer users, and Google has published no licence statement for it. Codex's IDE
+          extension and Codex Cloud are closed; the no-outside-code rule dates from August 17.
+          Only the SDK client libraries around the Copilot harness are MIT. Earendil, which
+          bought Pi on April 8, plans Fair Source features (code you can read, with limits on
+          commercial use) and proprietary enterprise features on top of the MIT core. Codex has
+          about 133,000 stars. Goose was one of the founding projects when the Agentic AI
+          Foundation started in December 2025; Block completed the donation and the repo moved
+          to aaif-goose on April 7, 2026. Star counts move daily; they measure attention and say
+          nothing about how many people run the tool.</p>
+          <p>Source: research/round5-oss-terminal.md short version, §4, §6 and verification
+          pass (stars, licences, Pi, Goose); round5-openai-codex.md short version
+          (contributing.md); round5-synthesis.md §2.1 (Codex closed parts);
+          round5-copilot-architecture.md §1 table and §10 [R] note;
+          round5-google-amazon-jetbrains.md §1 table and open questions (Antigravity CLI
+          licence not stated).</p>
+        </aside>
+      </section>
+
+      <section id="field-consolidation">
+        <span class="eyebrow">02 · the field</span>
+        <h2>Since April, seven coding tools were sold, renamed, cut back or set to close</h2>
+        <ul class="timeline">
+          <li><span class="when">Apr 30</span>AWS sets end of support for Q Developer's IDE plugins and paid plans (Apr 2027); its CLI is already Kiro CLI</li>
+          <li><span class="when">Jun 2</span>Windsurf becomes Devin Desktop (Cognition)</li>
+          <li><span class="when">Jun</span>Cursor buys Continue; the Continue repo goes read-only</li>
+          <li><span class="when">Jun 18</span>Google cuts Gemini CLI for free and consumer plans</li>
+          <li><span class="when">Aug 14</span>SpaceX completes its purchase of Cursor</li>
+          <li><span class="when">Oct 8</span>Augment (maker of the Auggie agent) sells Auggie to Harness, a CI/CD company</li>
+          <li><span class="when">Oct 29</span>Google says Jules goes read-only after Nov 11 and closes Dec 31</li>
+        </ul>
+        <p class="src">Vendor posts and changelogs, Apr to Oct 2026; Continue date from press reports</p>
+        <aside class="notes">
+          <p>Point at two rows and move on: Amazon is moving Q Developer users to Kiro, and
+          Cursor now belongs to SpaceX, whose AI group makes the Grok models. The other rows
+          are there for anyone who used one of these tools.</p>
+          <p>"Harness" in the Augment row is a company name, the CI/CD vendor, and has nothing
+          to do with our word for the code around a model.</p>
+          <p>Backup (do not read aloud): Gemini CLI still runs for enterprise Gemini Code
+          Assist licences and paid API keys; only the free and consumer tiers lost it, and the
+          closed Antigravity CLI replaced it for them. Q Developer's IDE plugins and paid
+          subscriptions reach end of support on April 30, 2027; Q in the AWS console, docs,
+          mobile app and chat apps is not affected. The Q CLI became Kiro CLI before the April
+          announcement, and the old open source Q CLI repo now says it "is no longer being
+          actively maintained". SpaceX agreed to buy Cursor on June 16 for $60 billion in
+          stock, according to CNBC. Augment sold the Auggie CLI together with its Context
+          Engine, and the team moved to Harness. Continue's own homepage confirms Cursor bought
+          it; the June date comes from press reports, which split between June and July.
+          Continue's open source code is still readable. Not on the slide: Pi went to Earendil
+          on April 8, Roo Code shut on May 15, and Anaconda bought Kilo Code in July. The Jules
+          dates rest on news reports; Jules's own changelog page returned no text on 5
+          November.</p>
+          <p>Source: research/round5-synthesis.md §6.1 (dated table) and §8 item 25;
+          round5-google-amazon-jetbrains.md short version, §1 table, Q Developer rows and
+          verification items 1, 3, 6, 7; round5-oss-ide-extensions.md short version, §2,
+          §4.1; round5-cursor-cognition.md short version (Windsurf);
+          round5-platforms-research.md short version and §5 (Augment);
+          round5-oss-terminal.md §6 (Pi); round5-adoption-market.md §5.3 and verification
+          items 12, 13 (Cursor deal and close).</p>
+        </aside>
+      </section>
+
+      <section id="field-usage">
+        <span class="eyebrow">02 · the field</span>
+        <h2>Most developers use a coding agent every week, and many use more than one</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="big">90%</div>
+            <p class="big-label">use a coding agent at work every week (JetBrains survey)</p>
+          </div>
+          <div class="stat">
+            <div class="big">68%</div>
+            <p class="big-label">use one every day (same survey)</p>
+          </div>
+          <div class="stat">
+            <div class="big">3x</div>
+            <p class="big-label">median speedup people reported to METR, which calls such answers “not necessarily grounded in reality”</p>
+          </div>
+        </div>
+        <p class="note">Used at work (JetBrains): Claude Code 39%, Copilot 21%, Codex 16%, Cursor 12%<br>
+        Used in the past year (Stack Overflow): Claude Code 66%, Copilot 59%, Codex 30%, Cursor 26%</p>
+        <p class="src">JetBrains survey, May to Jul 2026 · Stack Overflow survey 2026 · METR, May 2026</p>
+        <aside class="notes">
+          <p>JetBrains asked more than 15,000 professional developers between May and July:
+          90% use a coding agent at work at least weekly and 68% daily. By tool, 39% use
+          Claude Code at work, up from 18% in January. Copilot is at 21%, down from 29% a year
+          earlier. JetBrains sells its own agents, Junie and Air, so treat this as a vendor's
+          survey. It also records what individuals pick for themselves, and a regulated shop
+          weighs other things. The same Claude models are available inside Copilot where our
+          admins enable them.</p>
+          <p>Stack Overflow's 2026 survey puts the same tools at the top in the same order. Its
+          figures add up to well over 100% because people named more than one tool. That is
+          the "more than one" in the heading; the arithmetic is ours.</p>
+          <p>METR, a research group that measures what AI can do, surveyed 349 technical
+          workers in early 2026. The median person reported a 3x speedup, and METR wrote that
+          such results are "not necessarily grounded in reality".</p>
+          <p>Backup (do not read aloud): JetBrains by tool, continued: Codex went from 3% to
+          16%, and Cursor from 18% to 12%. Stack Overflow had 30,903 responses; of the 12,255
+          who answered the coding agent question, 65.5% had used Claude Code in the past year,
+          58.7% Copilot, 29.5% Codex and 25.5% Cursor. Analysts rank differently: Gartner's
+          Magic Quadrant for Enterprise AI Coding Agents, May 2026, the first edition under
+          that name, has four Leaders: Anthropic, Cursor, GitHub and OpenAI. GitHub says it
+          "placed as the highest in ability to execute". The report itself is gated behind
+          vendor forms, so we only know the placements from press coverage. In METR's 2025
+          study people overestimated AI's effect on their time by 40 percentage points. If
+          anyone asks how many pull requests agents now write, that number comes up in section
+          6.</p>
+          <p>Source: research/round5-adoption-market.md short version, §1.1, §1.2, §4.1, §4.2
+          and verification pass (items 1, 3, 9, and the 2026-11-05 line: JetBrains primary page
+          re-read, figures match); round5-philosophy-direction.md §3.1 (JetBrains
+          table, METR).</p>
+        </aside>
+      </section>
+    </section>
+
+
+<!-- ================================================================
+     PART 3 · WHAT THEY SHARE  (id prefix: share-)
+     Opener plus four slides, about 5 minutes.
+     ================================================================ -->
+<section>
+  <section class="opener" id="share-open">
+    <span class="secnum">03</span>
+    <h1>What they share</h1>
+    <p class="sub">Four things nearly every coding harness has in common in November 2026.</p>
+    <aside class="notes">
+      <p>About five minutes, four slides.</p>
+      <p>We just met the builders. Before we get to where they split, here is what they
+      agree on: the tools they hand the model, the features they borrow from each
+      other, the open standards they all read, and the habit of running one
+      harness behind many front ends.</p>
+      <p>Source: research/round5-synthesis.md §3.</p>
+    </aside>
+  </section>
+
+  <section id="share-tools">
+    <span class="eyebrow">03 · the toolbox</span>
+    <h2>Most harnesses hand the model the same small toolbox</h2>
+    <table>
+      <tr><th>Harness</th><th>Read</th><th>Search</th><th>Edit</th><th>Run</th><th>Web</th><th>Delegate</th></tr>
+      <tr><td>Claude Code</td><td><code>Read</code></td><td><code>Grep</code>, <code>Glob</code>; through <code>Bash</code> on Mac and Linux</td><td><code>Edit</code>, <code>Write</code></td><td><code>Bash</code></td><td><code>WebFetch</code>, <code>WebSearch</code></td><td><code>Agent</code></td></tr>
+      <tr><td>Copilot CLI</td><td><code>view</code></td><td><code>grep</code>, <code>glob</code></td><td><code>edit</code>, <code>apply_patch</code></td><td><code>bash</code></td><td><code>web_fetch</code></td><td><code>task</code></td></tr>
+      <tr><td>Gemini CLI</td><td><code>read_file</code></td><td><code>grep_search</code>, <code>glob</code></td><td><code>replace</code>, <code>write_file</code></td><td><code>run_shell_command</code></td><td><code>web_fetch</code>, <code>google_web_search</code></td><td><code>invoke_agent</code></td></tr>
+      <tr><td>Pi</td><td><code>read</code></td><td>through <code>bash</code></td><td><code>edit</code>, <code>write</code></td><td><code>bash</code></td><td>none by default</td><td>none</td></tr>
+    </table>
+    <p class="small">A study of 13 open-source agents found “the same four core capability
+    categories (read, search, edit, execute)” across all the LLM-driven ones.</p>
+    <p class="src">Tool lists: Claude Code, Copilot CLI and Pi docs, Gemini CLI source, Nov 2026 · Rombaut, arXiv 2604.03515, Apr 2026</p>
+    <aside class="notes">
+      <p>Each cell is a tool the harness offers the model, the thing a tool call from
+      section 1 asks for. Read the columns left to right: read a file, search the code,
+      change a file, run a command. Those four are the core. Web access and delegation
+      are the common extras. Delegate means starting a subagent.</p>
+      <p>Pi has the smallest toolbox in the table. By default it has four tools: read,
+      bash, edit and write. Its author, Mario Zechner, wrote in November 2025: "As it
+      turns out, these four tools are all you need for an effective coding agent.
+      Models know how to use bash and have been trained on the read, write, and edit
+      tools with similar input schemas."</p>
+      <p>Claude Code is moving toward Pi's minimum. In April 2026 (version 2.1.117) it
+      took Grep and Glob out of the default set on macOS and Linux, so search now runs
+      as shell commands. Windows and npm-installed builds still have both tools, which
+      is why the cell says "on Mac and Linux".</p>
+      <p>Backup (do not read aloud): Gemini CLI is still in the table because its source
+      is public and paid Code Assist licences and API keys still get it; the June cut for
+      consumer users is on the consolidation slide in section 2. If someone asks about
+      Codex: for GPT-5.6 and GPT-6 models, Codex gives the model a single tool called exec.
+      The model writes a short JavaScript program, which runs in an isolated JavaScript
+      engine with no file system or network access, and the program calls the harness's
+      other tools, such as the shell command tool, so the same four jobs still happen
+      underneath. That is why the headline says "most". Copilot offers edit to some models
+      and apply_patch to others, depending on who made the model; section 4 comes back to
+      that split.</p>
+      <p>Source: research/round5-convergence-standards.md §5.2 and §7;
+      research/round5-harness-effect-evidence.md §8.2 (Rombaut quote verified);
+      research/round5-claude-code.md §3; research/round5-copilot-architecture.md §3.1;
+      research/round5-google-amazon-jetbrains.md §1.2 and §1.3; research/round5-oss-terminal.md §6;
+      research/round5-openai-codex.md §3.</p>
+    </aside>
+  </section>
+
+  <section id="share-copy">
+    <span class="eyebrow">03 · borrowed features</span>
+    <h2>Rival vendors ship the same features within weeks or months, and several read Claude Code's hooks</h2>
+    <div class="cols">
+      <div>
+        <h3>/goal: keep working until a condition holds</h3>
+        <ul class="timeline">
+          <li><span class="when">May 11</span>Claude Code</li>
+          <li><span class="when">May 19</span>Antigravity 2.0</li>
+          <li><span class="when">May 18–22</span>Codex, out of experimental</li>
+          <li><span class="when">Aug 19</span>Cursor</li>
+        </ul>
+        <h3>One run, many agents</h3>
+        <ul class="timeline">
+          <li><span class="when">May 28</span>Claude Code dynamic workflows</li>
+          <li><span class="when">Sep 10</span>Cursor Projects</li>
+          <li><span class="when">Oct 1</span>Copilot dynamic workflows (preview)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Other harnesses read Claude Code's hooks</h3>
+        <ul class="small">
+          <li>Cursor loads Claude Code hooks</li>
+          <li>Copilot CLI reads <code>.claude/settings.json</code></li>
+        </ul>
+        <blockquote>“Most hook scripts written for Claude Code run under Crush unchanged.”
+        <cite>Charm, docs for its Crush terminal agent · v0.99.0, Oct 29, 2026</cite></blockquote>
+      </div>
+    </div>
+    <p class="src">Claude Code, Codex, Antigravity, Cursor and Copilot changelogs and docs, May to Oct 2026 · Crush docs, Oct 2026</p>
+    <aside class="notes">
+      <p>All dates on this slide are 2026. /goal first. You give the agent a finish line,
+      for example "all tests in this folder pass". After each turn a model checks whether
+      the condition holds, and if it doesn't, the agent starts another turn instead of
+      handing back to you. We can't say who copied whom: Codex had goals as an experiment
+      before May.</p>
+      <p>Second row: one run that starts many agents. Claude Code's dynamic workflows put
+      the plan in a script that starts the agents. Cursor Projects followed in September,
+      and Copilot's version arrived as a preview on October 1.</p>
+      <p>For hooks, the vendors' own docs say they read Claude Code's. A hook is a script
+      the harness runs at a fixed point in the loop, and it can block the action.</p>
+      <p>One consequence for us: Copilot also reads hook settings from a repo's .claude
+      folder, and a hook runs on your machine. VS Code runs workspace hooks only in a
+      trusted workspace, so think before you trust a repo you didn't write. No standards
+      body owns hooks either, so test a hook in each tool before relying on it.</p>
+      <p>Backup (do not read aloud): Claude Code's /goal docs: "After each turn, a model
+      checks whether the condition holds. If the model judges it not yet met, Claude starts
+      another turn instead of returning control to you." A turn is one round of the model
+      working until it would normally hand back to you. The Codex date is OpenAI's weekly
+      release-notes entry for May 18 to 22, the week goals left experimental status. The
+      idea goes back to "Ralph", a community trick from July 2025 that Anthropic turned
+      into an official plugin in January. Claude Code's workflow docs say "Dozens to
+      hundreds of agents per run"; Copilot's say "A dynamic workflow is a program that
+      defines how a task is carried out." Cursor's docs say it "supports loading hooks from
+      third-party tools like Claude Code". Copilot's hooks reference says "Cross-tool
+      .claude/settings.json and .claude/settings.local.json files in the repository are
+      also read". Codex uses Claude Code's event names word for word, according to a July
+      2026 study of 11 harnesses. xAI's Grok Build reads part of Claude Code's managed
+      settings file "for compatibility". Crush is source-available, and v0.99.0 shipped 13
+      hook events. VS Code's docs warn: "This file compatibility does not make their
+      behavior identical." VS Code docs: "Workspace hook files are subject to Workspace
+      Trust."</p>
+      <p>Source: research/round5-philosophy-direction.md §1.5 (/goal, Ralph);
+      research/round5-claude-code.md §2; research/round5-openai-codex.md §2;
+      research/round5-google-amazon-jetbrains.md §1.4; research/round5-cursor-cognition.md
+      (A2, product timeline); research/round5-copilot-architecture.md §2.1 (dynamic
+      workflows, public preview);
+      research/round5-convergence-standards.md §1.5; research/round3-hooks-context-memory.md
+      (hook locations); research/round5-oss-terminal.md §5;
+      research/round5-enterprise-harnesses.md short version item 6;
+      research/round3-hooks-context-memory.md Q7 (Workspace Trust for hooks).</p>
+    </aside>
+  </section>
+
+  <section id="share-standards">
+    <span class="eyebrow">03 · open standards</span>
+    <h2>Four open standards cover the edges of a harness, and none covers the loop</h2>
+    <table>
+      <tr><th>Standard</th><th>What it covers</th><th>Started</th><th>Run by, Nov 2026</th></tr>
+      <tr><td>AGENTS.md</td><td>An instruction file the agent reads first</td><td>OpenAI, Aug 2025</td><td>AAIF, since Dec 2025</td></tr>
+      <tr><td>MCP</td><td>Plugging in outside tools and data</td><td>Anthropic, Nov 2024</td><td>AAIF, since Dec 2025</td></tr>
+      <tr><td>Agent Skills</td><td>Instruction folders loaded when a task matches</td><td>Anthropic, Oct 2025</td><td>AAIF, since Oct 22, 2026</td></tr>
+      <tr><td>ACP</td><td>How an editor talks to any coding agent</td><td>Zed, Aug 2025</td><td>Zed and JetBrains</td></tr>
+      <tr><td>Hooks</td><td>Scripts that run at fixed points in the loop</td><td>Claude Code's format, copied</td><td class="hl">No standard</td></tr>
+      <tr><td>The core</td><td>The loop, the system prompt, what stays in context</td><td>Each vendor</td><td class="hl">No standard</td></tr>
+    </table>
+    <p class="small">AAIF is the Linux Foundation's Agentic AI Foundation. GitHub Copilot
+    reads or speaks all four standards.</p>
+    <p class="src">Linux Foundation AAIF releases, Dec 2025 and Oct 2026 · agents.md, agentclientprotocol.com, Copilot docs, Nov 2026</p>
+    <aside class="notes">
+      <p>The room already used three of these in October. AGENTS.md is an instruction file in plain Markdown that most agents read at the
+      start of a session. MCP is the plug for outside tools from section 1. A skill is
+      a folder with a SKILL.md file; the agent sees only its name and description until
+      a task needs it. ACP, the Agent Client Protocol, lets an
+      editor such as Zed or a JetBrains IDE drive any agent, much as the language server
+      protocol lets one editor support many languages.</p>
+      <p>The Agentic AI Foundation started in December 2025 with MCP, AGENTS.md and
+      Block's goose agent. Of the four standards on this slide, ACP is the only one
+      outside it.</p>
+      <p>Bottom two rows: hooks have a common shape that everyone copies from Claude
+      Code, but nobody owns it. Nothing standardises the core either: the system prompt,
+      what stays in the context window and how compaction works are each vendor's own
+      choice.</p>
+      <p>Copilot reads AGENTS.md, skills, CLAUDE.md and GEMINI.md, uses MCP, and the
+      Copilot CLI runs as an ACP agent. So the instruction files and skills we wrote in
+      October are in formats other tools also read.</p>
+      <p>Backup (do not read aloud): the foundation now hosts 10 projects; its platinum
+      members at launch were AWS, Anthropic, Block, Bloomberg, Cloudflare, Google,
+      Microsoft and OpenAI. Microsoft's Agent Host Protocol (AHP) is an open protocol that
+      lets several apps connect to the same live agent session; the VS Code team wrote in
+      August 2026: "AHP standardizes the client-facing session, not how an agent reasons,
+      manages context, or calls tools." Copilot reads AGENTS.md at every folder level,
+      reads skills from .claude/skills too, and the CLI's ACP mode is copilot --acp.
+      Adoption numbers (60,000 projects using AGENTS.md, 70 platforms with skills) are the
+      stewards' own counts.</p>
+      <p>Source: research/round5-convergence-standards.md §1.1 to §1.6 and §8;
+      research/round5-copilot-architecture.md §6 and §8 (AHP quote).</p>
+    </aside>
+  </section>
+
+  <section id="share-surfaces">
+    <span class="eyebrow">03 · one harness, many screens</span>
+    <h2>Each big vendor now runs one harness behind many front ends</h2>
+    <blockquote>“The Microsoft Copilot harness powers … the GitHub Copilot app, the CLI,
+    VS Code, and more.”
+    <cite>Tina Schuchman and Vladimir Fedorov, Microsoft · Oct 28, 2026</cite></blockquote>
+    <div class="cols-3">
+      <div class="panel">
+        <h3>OpenAI Codex</h3>
+        <p class="small">One Rust core runs the CLI, IDE extension, desktop app and SDK.</p>
+      </div>
+      <div class="panel">
+        <h3>AWS Kiro</h3>
+        <p class="small">One harness serves the IDE, CLI, web and iOS apps.</p>
+      </div>
+      <div class="panel">
+        <h3>VS Code 1.143</h3>
+        <p class="small">The Copilot harness became the default for new sessions in October.</p>
+      </div>
+    </div>
+    <p class="src">Microsoft blog, Oct 2026 · Codex docs, Nov 2026 · Kiro blog, Aug 2026 · VS Code 1.143 notes and harness docs, Oct 2026</p>
+    <aside class="notes">
+      <p>A surface is wherever you meet the agent: the editor, the terminal, a desktop
+      app, a chat channel. Until this year VS Code's agent and the Copilot CLI's agent
+      were separate code. Microsoft merged them into one harness, the Copilot harness from
+      section 2. The post on the slide gives the reason: "Improve the harness, and every
+      surface it touches benefits."</p>
+      <p>Codex: one open-source Rust harness drives the CLI, the IDE extension, the ChatGPT
+      desktop app and the SDK. Kiro: one harness process owns everything on the agent
+      side, and the apps only handle what you see. Google does the same with the
+      Antigravity app and CLI.</p>
+      <p>VS Code: in October the Copilot harness became the default for new sessions, and
+      VS Code's docs now call the older Local harness a "legacy editor harness option". If
+      you use Copilot in IntelliJ, it's the same story: Copilot in JetBrains IDEs has run on
+      the Copilot harness since August. The Local harness exists only in VS Code.</p>
+      <p>VS Code can also run Anthropic's Claude harness and OpenAI's Codex harness.
+      Whether the bank allows those other harnesses is for our platform team to
+      decide.</p>
+      <p>Backup (do not read aloud): Microsoft's full name is the Microsoft Copilot
+      harness. The ellipsis in the quote drops two other Microsoft product names (Copilot
+      Code and Copilot Studio). Codex's front ends talk to the harness through a small
+      server. Kiro's August 3 engineering post calls its harness "a lightweight process that
+      runs alongside your codebase ... and owns everything on the agent side"; locally it
+      talks ACP, and the web and iOS apps reach a copy running in a cloud sandbox over
+      Kiro's own WebSocket transport. The VS Code 1.143 release page has no date; going by
+      the weekly cadence (1.142 on October 14, 1.145 on November 4), it came out around
+      October 21. Copilot in JetBrains reached general availability on August 24.</p>
+      <p>Source: research/round5-copilot-architecture.md §1.1, §1.2, §8, §9 and
+      verification pass item 4; research/round5-openai-codex.md short version and §1;
+      research/round5-google-amazon-jetbrains.md §2.2 and verification item 8;
+      research/round5-synthesis.md §1 item 5.</p>
+    </aside>
+  </section>
+</section>
+
+
+<!-- Part 04a · Where they split (first half): opener, axes, thick, search, edit, prompts -->
+    <section>
+      <section class="opener" id="split-open">
+        <span class="secnum">04</span>
+        <h1>Where they split</h1>
+        <p class="sub">Several builders have reversed their own answers within the last
+        year.</p>
+        <aside class="notes">
+          <p>This is the longest section, about 11 minutes, so keep each slide to a minute or
+          so. The system-prompts slide is optional; skip it if you are behind.</p>
+          <p>The first half is about what the model reads and writes: how much harness to
+          build, how the agent finds code, how it edits files, and how long its instructions
+          are. The second half covers multiple agents, safety, and where the work happens.
+          The question of whose models a harness runs comes up in section 5, with each
+          builder's philosophy.</p>
+          <p>Where a slide places products on a line, or gives a reason for a builder's
+          choice, that is our reading of the evidence. Say so once here; the later slides
+          don't repeat it.</p>
+          <p>Source: round5-synthesis.md §4 (placements tagged [O]).</p>
+        </aside>
+      </section>
+
+      <section id="split-axes">
+        <span class="eyebrow">eight questions</span>
+        <h2>Builders give different answers to the same eight design questions</h2>
+        <div class="cols">
+          <ol>
+            <li>How much code should sit around the loop?</li>
+            <li>How does the agent find code?</li>
+            <li>What format does it use to edit a file?</li>
+            <li>How long are its standing instructions?</li>
+          </ol>
+          <ol start="5">
+            <li>How many agents write at once?</li>
+            <li>Where does safety live?</li>
+            <li>Whose models does it run? <span class="note">answered in section 5</span></li>
+            <li>Where does the work happen?</li>
+          </ol>
+        </div>
+        <p class="src">Axes: our synthesis of the round 5 research, Nov 2026</p>
+        <aside class="notes">
+          <p>Read the eight questions out quickly and don't explain them yet. Questions 1 to 4
+          come next, then 5, 6 and 8. Question 7, whose models a harness runs, is answered in
+          section 5, because each builder's answer follows from its philosophy.</p>
+          <p>Most of these slides place products on a line between two answers. As we go,
+          notice where Copilot lands on each line. The last section puts all of Copilot's
+          positions in one table.</p>
+          <p>Source: round5-synthesis.md §4.1 to §4.10.</p>
+        </aside>
+      </section>
+
+      <section id="split-thick">
+        <span class="eyebrow">1 · how much harness</span>
+        <h2>Some harnesses ship little and delete often; others ship a lot by default</h2>
+        <div class="spectrum">
+          <div class="poles"><span>Thin: ship little by default, delete often</span><span>Thick: ship a lot by default</span></div>
+          <div class="track">
+            <span class="dot" style="left:8%">mini-swe-agent</span>
+            <span class="dot low" style="left:16%">Pi</span>
+            <span class="dot" style="left:25%">Claude Code</span>
+            <span class="dot low" style="left:32%">Amp</span>
+            <span class="dot us" style="left:64%">Copilot</span>
+            <span class="dot low" style="left:74%">Devin</span>
+            <span class="dot" style="left:83%">Factory</span>
+            <span class="dot low" style="left:92%">Kiro</span>
+          </div>
+        </div>
+        <div class="qpair">
+          <div>
+            <span class="label">Claude Code, May 2025</span>
+            <blockquote>“all the secret sauce, it's all in the model. And this is the
+            thinnest possible wrapper over the model.”
+            <cite>Boris Cherny, creator of Claude Code · Latent Space podcast · May 2025</cite></blockquote>
+          </div>
+          <div>
+            <span class="label">Claude Code, Jul 2026</span>
+            <blockquote>“We delete code in the harness all the time. If you look at the
+            code that's in the Claude Code harness today, almost all of it is about
+            safety and permissions and static analysis.”
+            <cite>Boris Cherny · YC Root Access interview · Jul 2026</cite></blockquote>
+          </div>
+        </div>
+        <p class="src">Placements: each product's docs and posts, Nov 2026 · Latent Space, May 2025 · YC Root Access interview, published 27 Jul 2026</p>
+        <aside class="notes">
+          <p>The line measures what a harness ships by default and how much of it the team
+          deletes when a new model arrives. It does not count lines of code. That is why
+          Claude Code sits near the thin end even though it has many features, such as 33
+          hook events: you add those yourself, and the team keeps removing what new models
+          no longer need.</p>
+          <p>At the thin end, mini-swe-agent gives the model a bash shell and nothing else. At
+          the thick end, Kiro has written specs and permission rules in a policy language
+          called Cedar. Copilot sits on the thick side because of what it builds around the
+          model: a router that picks a model for each prompt, a "rubber duck" (a model from a
+          different family that critiques the plan or the code), memory, and admin policy
+          controls.</p>
+          <p>The two quotes are the same person a year apart. In May 2025 Boris Cherny called
+          Claude Code the thinnest possible wrapper. In July 2026 he said the team still
+          deletes harness code all the time, and that what remains is mostly safety,
+          permissions and static analysis (checking code or commands without running
+          them).</p>
+          <p>Backup (do not read aloud): in the same interview Cherny said that for every new
+          model they delete the whole system prompt and add it back line by line to see what
+          each line does. Others describe the same habit. Cursor cut roughly two-thirds of its
+          system prompt in September 2026 (system-prompts slide). Augment, writing up its CLI
+          rebuild on Pi in August 2026: "The main learning: subtraction." Even Kiro, the
+          thickest harness here, wrote in October: "Try removing before adding. The safest
+          wins are often removals, especially as models get better."</p>
+          <p>Source: round5-claude-code.md §8 and Verification pass items 7 and 8;
+          round5-cursor-cognition.md A4 and Verification pass item 3;
+          round5-platforms-research.md §5.2; round5-google-amazon-jetbrains.md §2.3;
+          round5-synthesis.md §4.1 (placements [O]; Copilot's thick-side features and the
+          33 hook events). "Creator of Claude Code" follows the title of YC's Feb 2026 video,
+          "Inside Claude Code With Its Creator Boris Cherny" (round5-philosophy-addendum.md
+          §1.1).</p>
+        </aside>
+      </section>
+
+      <section id="split-search">
+        <span class="eyebrow">2 · finding code</span>
+        <h2>Cursor dropped semantic search in July 2026; Copilot's CLI turned it on in October</h2>
+        <div class="spectrum">
+          <div class="poles"><span>grep: match exact text</span><span>Semantic index: match by meaning</span></div>
+          <div class="track">
+            <span class="dot" style="left:8%">Claude Code</span>
+            <span class="dot low" style="left:15%">Codex</span>
+            <span class="dot" style="left:22%">Cline</span>
+            <span class="dot low" style="left:38%">Cursor (grep index)</span>
+            <span class="dot" style="left:60%">Junie (IDE index)</span>
+            <span class="dot us low" style="left:78%">Copilot</span>
+            <span class="dot" style="left:90%">Warp</span>
+          </div>
+        </div>
+        <div class="qpair">
+          <div>
+            <span class="label">Cursor, Nov 2025</span>
+            <blockquote>“Semantic search is currently necessary to achieve the best
+            results, especially in large codebases.”
+            <cite>Cursor blog · Nov 2025 · Cursor's own test: 12.5% higher accuracy on average</cite></blockquote>
+          </div>
+          <div>
+            <span class="label">Cursor, Jul 2026</span>
+            <blockquote>“Semantic/embeddings indexing is being turned down in favor of
+            grep-based retrieval”
+            <cite>Cursor community support engineer · Cursor forum · Jul 2026</cite></blockquote>
+          </div>
+        </div>
+        <p class="small">Copilot CLI changelog, 19 Oct 2026: “Enable semantic code search by default for online sessions.”</p>
+        <p class="src">Cursor blog, Nov 2025 · Cursor forum, Jul 2026 · GitHub Copilot CLI v1.0.100 changelog, 19 Oct 2026 · placements ours, Nov 2026</p>
+        <aside class="notes">
+          <p>First the two words on the line. grep is plain text search: find every line that
+          contains this exact word or pattern, like Ctrl+F across the whole repository. A
+          semantic index is built ahead of time from embeddings, lists of numbers that capture
+          roughly what a chunk of code means, so a search for "retry logic" can find code that
+          never uses the word retry. The index has to be rebuilt as the code changes, and
+          stored somewhere.</p>
+          <p>Most harnesses sit on the left: Claude Code, Codex and Cline search with grep and
+          keep no index.</p>
+          <p>Cursor was the loudest voice for a semantic index. In November 2025 it reported
+          12.5% higher accuracy on its own benchmark. In July 2026 its staff wrote that the semantic path "was rapidly no longer helping in a meaningful way" and turned
+          it down.</p>
+          <p>Copilot went the other way. On 19 October the Copilot CLI turned semantic code
+          search on by default. Copilot's index lives on GitHub's servers next to the code.
+          GitHub's measured gain is small: in March its cloud agent finished tasks in "2%
+          less time without any change in quality."</p>
+          <p>The independent evidence doesn't pick a winner.</p>
+          <p>Backup (do not read aloud): Cline wrote in 2025: "We don't index your codebase,
+          and this choice isn't an oversight." A source-code study of eleven harnesses in July
+          2026 found "No system uses vector-embedding RAG for code retrieval." (RAG,
+          retrieval-augmented generation, means looking up stored chunks and pasting them into
+          the prompt.) Cursor trained its own embedding model for the 2025 result. Cursor still
+          builds a local index on your machine that makes grep fast on big repositories; its
+          docs now say it "does not store embeddings of your codebase for search." The Copilot
+          changelog doesn't define "online sessions", so don't guess if asked. Because
+          Copilot's index sits next to the code on GitHub, the usual worries about a stale or
+          exposed index carry less weight. A July 2026 retrieval benchmark found "No single
+          retrieval family dominates"; it only scored whether the agent found the right files,
+          not task success. Junie uses the JetBrains IDE's own semantic index, and Warp keeps a
+          semantic index too.</p>
+          <p>Source: round5-cursor-cognition.md A3 and Verification pass item 2;
+          round5-convergence-standards.md §3.2 and §3.3; round5-copilot-architecture.md §3.1;
+          round5-oss-ide-extensions.md §1.4; round5-harness-effect-evidence.md §8.3;
+          round5-synthesis.md §4.4 (placements [O]).</p>
+        </aside>
+      </section>
+
+      <section id="split-edit">
+        <span class="eyebrow">3 · editing files</span>
+        <h2>GPT models edit with apply_patch; Claude and most others use find and replace</h2>
+        <div class="cols">
+          <div>
+            <h3>apply_patch · OpenAI's format</h3>
+            <pre><code>*** Begin Patch
+*** Update File: src/main/java/bank/Fees.java
+@@ long monthlyFeeCents(boolean student) {
+-    return 500;
++    return student ? 0 : 500;
+*** End Patch</code></pre>
+          </div>
+          <div>
+            <h3>str_replace · Anthropic's format</h3>
+            <pre><code>{
+  "path": "src/main/java/bank/Fees.java",
+  "old_str": "return 500;",
+  "new_str": "return student ? 0 : 500;"
+}</code></pre>
+          </div>
+        </div>
+        <p class="small">Copilot's open-source Local harness chooses per model: GPT-5 and later get
+        <code>apply_patch</code>, Claude gets <code>replace_string_in_file</code>.</p>
+        <p class="src">Codex apply_patch.lark, Aug 2026 · Anthropic text editor tool docs and microsoft/vscode Copilot source, both read 4 Nov 2026 · example edit is ours</p>
+        <aside class="notes">
+          <p>Both boxes make the same change to the same file, written as the model's tool
+          call.</p>
+          <p>On the left is OpenAI's apply_patch format. Lines starting with a minus are
+          removed, lines starting with a plus are added. There are no line numbers: the harness
+          finds the right spot from the surrounding text and the anchor after the @@, here the
+          method signature. Codex uses it for every model in its catalog.</p>
+          <p>On the right is find and replace, the shape of Anthropic's text editor tool: the
+          file, the exact old text, the new text. The old text has to match exactly, and only
+          once, or the harness returns an error and the model tries again.</p>
+          <p>Which format a model gets depends on who made it, most likely because each lab
+          trains its models on its own format. OpenAI says that giving apply_patch its own
+          named tool type "decreased apply_patch failure rates by 35%".</p>
+          <p>Harnesses that run many models route by model family. Copilot's open-source Local
+          harness gives GPT-5 and later apply_patch and gives Claude replace_string_in_file.
+          For us: Copilot picks the format from the model you choose; you never write either
+          one.</p>
+          <p>Backup (do not read aloud): Codex defines the whole apply_patch format in a
+          19-line grammar. The 35% figure is from OpenAI's GPT-5.1 guide, late 2025. Claude
+          Code's Edit tool works like the right-hand box. Cat Wu at Anthropic said in July 2026
+          that the dedicated edit tool exists mainly so Claude Code can show people a clean
+          change in the UI, and "we could probably just remove file edit and be totally fine."
+          For bring-your-own-key models, which a customer connects with their own API key, the
+          Local harness learns which edit tool succeeds more often. Cline, OpenCode and
+          OpenHands route the same way. The Copilot CLI documents a string-replacement edit
+          tool plus apply_patch, which is "used by some models instead of edit/create". Cursor
+          and Cognition don't document their 2026 edit formats, so don't guess if asked. The
+          code in the example is ours; the syntax and field names come from the files. If
+          someone asks whether the format makes a difference: two builders measured their own
+          formats on weaker models, both more than six months ago. In February 2026 Can Bölük's
+          hashline format, which tags every line so the model can point at it, took Grok Code
+          Fast 1 from 6.7% to 68.3% on 180 React bug fixes. In December 2023 Paul Gauthier, who
+          wrote Aider, moved GPT-4 Turbo to a simplified unified diff (the format git uses),
+          and its score on 89 refactoring tasks went from 20% to 61%. A JetBrains study found
+          that "search-replace format performs best for larger models across most tasks", and
+          that "smaller open models benefit little from any formatting choice".</p>
+          <p>Source: round5-openai-codex.md §3 "Edit format: apply_patch" (grammar, verified);
+          round5-convergence-standards.md §2.1 to §2.4 and Verification pass item 11 (hashline);
+          round5-copilot-architecture.md §3.1, §3.3 and Verification pass item 6;
+          round5-claude-code.md §3; round5-oss-terminal.md §2 and Verification pass (Aider
+          unified diffs). Hashline: Can Bölük, Stencil blog, Feb 2026. Aider blog, Dec 2023.
+          JetBrains: Diff-XYZ, arXiv 2510.12487, Nov 2025.</p>
+        </aside>
+      </section>
+
+      <section id="split-prompts">
+        <span class="eyebrow">4 · system prompts</span>
+        <h2>System prompts moved in opposite directions; in Claude Code, tools outweigh the prompt six to one</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="big">9,517</div>
+            <div class="big-label">characters of system prompt (13%)</div>
+          </div>
+          <div class="stat">
+            <div class="big">57,346</div>
+            <div class="big-label">characters describing 20 tools (77%)</div>
+          </div>
+          <div class="stat">
+            <div class="big">66%</div>
+            <div class="big-label">of Cursor's system prompt cut in Sep 2026 (Cursor's figure)</div>
+          </div>
+        </div>
+        <p class="small">Claude Code 2.1.243, Aug 2026, first request of 74,078 characters.
+        Codex GPT-6.x prompts: up to 3,366 words (GPT-5-Codex: 1,088). Copilot's Local
+        harness: about 70 prompt lines for Claude Opus 5, 306 for GPT-6.</p>
+        <p class="src">arXiv 2610.37332, Oct 2026 · Cursor blog, Sep 2026 · Codex models.json, Oct 2026 · microsoft/vscode Copilot source · word and line counts ours, 4 Nov 2026</p>
+        <aside class="notes">
+          <p>Optional if short on time. If you skip it, go straight to multiple agents.</p>
+          <p>Some system prompts got shorter, but the whole request got longer, because the
+          tool descriptions grew. Tool descriptions are the other big block sent with every
+          request: a description of each tool the model may call, with its parameters.</p>
+          <p>The Claude Code numbers come from an October 2026 study that captured the first
+          request of five harnesses across 1,886 releases. In Claude Code 2.1.243 the system
+          prompt was 13% of the request and the 20 tool definitions 77%. Six to one is our
+          division of those two character counts.</p>
+          <p>In September Cursor cut "roughly 66% of our system prompt". It removed "long lists
+          of 'DO NOT do this,' 'You must,' or 'Important' instructions" written for weaker
+          models.</p>
+          <p>Prompts for GPT models went the other way. Codex's prompts for its GPT-6 models
+          are about three times the length of its GPT-5-Codex prompt. Copilot's open-source
+          Local harness shows the same split, and its Claude prompt keeps "only what the model
+          can't infer from context". The default Copilot harness runs in a closed runtime, and
+          its prompt isn't public.</p>
+          <p>Backup (do not read aloud): the paper's own ratio is different. It says Claude
+          Code's tool descriptions are 2.6 times as long as its instruction text, counting all
+          instruction text, not only the system prompt. If someone holds up the paper, that is
+          why the figures differ. From their earliest 2025 releases to August 2026, Claude
+          Code's first request grew 2.3 times and Codex's 7.8 times, while OpenCode's shrank by
+          almost a quarter. Tool descriptions were most of the request in Claude Code, Qwen
+          Code and OpenCode, but only 41% in Codex and 19% in Gemini CLI. Cursor says the
+          changes in its September post lowered users' token costs 7% "without reducing agent
+          quality"; the post doesn't say how the prompt cut itself was tested. Codex's GPT-6
+          prompts run 2,790 to 3,366 words, 2.6 to 3.1 times the 1,088 words for GPT-5-Codex;
+          the GPT-5.5 prompt in the same file is already 3,543 words, so much of the growth
+          came before GPT-6. To keep the tool list small, Claude Code, Codex and Copilot now
+          load some tool descriptions only when needed, through a tool-search tool, and Cursor
+          loads MCP tools on demand.</p>
+          <p>Source: round5-convergence-standards.md §4.1 to §4.3 and Verification pass item 10
+          and corrections; round5-cursor-cognition.md A3, A4 and Verification pass item 3;
+          round5-copilot-architecture.md §4.1, §4.3 and Verification pass items 4 and 7;
+          round5-synthesis.md §3.5 and §4.6.</p>
+        </aside>
+      </section>
+    
+      <!-- merged from 04b-split.html -->
+
+
+  <section id="split-agents">
+    <span class="eyebrow">5 · one agent or many</span>
+    <h2>Multi-agent designs are back in favour, with strict rules about which agents write code</h2>
+    <div class="qpair">
+      <blockquote><span class="label">June 2025</span>“Actions carry implicit decisions, and conflicting decisions carry bad results.”
+        <cite>Walden Yan, Cognition (maker of Devin)</cite></blockquote>
+      <blockquote><span class="label">April 2026</span>“multi-agent systems work best today when writes stay single-threaded and the additional agents contribute intelligence rather than actions”
+        <cite>Walden Yan, Cognition (maker of Devin)</cite></blockquote>
+    </div>
+    <blockquote>“The coordinator doesn't write code itself but directs other agents that do.”
+      <cite>Cursor, Projects, Sep 2026</cite></blockquote>
+    <p class="src">Cognition blog, Jun 2025 and Apr 2026 · Cursor blog, Projects, Sep 2026</p>
+    <aside class="notes">
+      <p>Question five: how many agents write at once. A year ago the answer was one. In
+      June 2025 Walden Yan at Cognition, the company behind Devin, wrote "Don't Build
+      Multi-Agents". His argument: when two agents write code in parallel, each makes small
+      decisions the other can't see, and the results clash.</p>
+      <p>In April 2026 he wrote a follow-up that opens "A lot has changed since then."
+      Models got better at working as agents, and some multi-agent setups now work: a
+      reviewer that starts with a clean context, a stronger model the agent can ask for help,
+      a manager agent, and read-only helpers that search and report back. The rule he kept is
+      on the slide: one agent writes, and the others contribute ideas.</p>
+      <p>Cursor's Projects feature, from September, draws the line in a different place. A
+      coordinator hands tasks to many subagents and doesn't write code itself; the agents it
+      directs do.</p>
+      <p>Copilot uses extra agents as readers too: the CLI's rubber duck, from the
+      how-much-harness slide, is one of them.</p>
+      <p>Backup (do not read aloud): Yan's 2025 post recommended "a single-threaded linear
+      agent". In 2026 he calls free-form swarms of agents negotiating with each other "mostly
+      a distraction". Cursor Projects launched in beta on 10 September 2026; Cursor says the
+      coordinator can direct "thousands of subagents". On 23 September Cursor also removed
+      prompt instructions that pushed its agent to spawn subagents for exploration, citing a
+      "coordination tax" of duplicated work. Cursor's docs say subagents share the same
+      checkout unless they run in a git worktree (a second checkout of the repo in its own
+      folder) or on a cloud machine. GitHub's reason for the rubber duck is that a model
+      reviewing its own output shares "the same training data and techniques, the same blind
+      spots" (April 2026).</p>
+      <p>Source: research/round5-cursor-cognition.md §B8 (both Yan posts), §A2 (Projects,
+      subagents), §A4 (coordination tax); round5-copilot-architecture.md §8 (McKenna and Perz,
+      rubber duck); round5-synthesis.md §4.7.</p>
+    </aside>
+  </section>
+
+  <section id="split-safety">
+    <span class="eyebrow">6 · where safety lives</span>
+    <h2>Harnesses stop bad commands in six different ways, and most sandboxes ship switched off</h2>
+    <table>
+      <tr><th>What stops a bad command</th><th>Harnesses (Nov 2026)</th></tr>
+      <tr><td>A person approves each step</td><td>Warp, Junie</td></tr>
+      <tr><td>A second model reviews each action (a classifier)</td><td>Claude Code (its default), Codex, Copilot, Cursor, Antigravity</td></tr>
+      <tr><td>OS sandbox, on by default</td><td>Zed, Codex, Antigravity app</td></tr>
+      <tr><td class="hl">OS sandbox, off by default</td><td class="hl">Claude Code, Copilot, Kiro, Gemini CLI, Junie, Devin CLI</td></tr>
+      <tr><td>No sandbox, and few or no approval prompts by default</td><td>Pi, OpenCode, Goose, Aider</td></tr>
+      <tr><td>Run it on a remote machine</td><td>Devin, Amp (remote machines it calls orbs), cloud agents from Cursor, Copilot, Codex</td></tr>
+    </table>
+    <p class="src">Vendor docs and changelogs, read 4 Nov 2026 · GitHub Copilot local sandboxing docs, Nov 2026</p>
+    <aside class="notes">
+      <p>Row one is the oldest answer: a person clicks approve.
+      Row two hands that job to a second model, a classifier, that reads each request and
+      decides. Claude Code made this its starting mode at the end of September 2026. Codex,
+      Copilot and Cursor ship one as an option. Copilot's version is called assisted
+      permissions: a model approves or blocks each tool call. It has been generally available
+      since 26 October.</p>
+      <p>Rows three and four are the OS sandbox. Most vendor tools now have one, and most ship
+      it switched off, Copilot included: "Local sandboxing is turned off by default." Admins can switch it on through managed settings.</p>
+      <p>Row five is the open-source terminal agents. None of them sandboxes by default, so
+      treat all four as running with your own permissions.</p>
+      <p>Row six avoids the question by running the agent on another machine.</p>
+      <p>A harness can sit in two rows. Claude Code has a classifier on by default and a sandbox
+      off by default.</p>
+      <p>For a Windows shop: Claude Code has no sandbox on native Windows, and Copilot's Windows
+      sandbox needs a recent Windows 11 update. The exact builds are in the backup notes.</p>
+      <p>Backup (do not read aloud): Antigravity's Auto mode works like row two, but it isn't
+      available to business or enterprise accounts. Zed's post on its sandbox says: "These
+      restrictions are enforced by the operating system and do not rely on an agent following
+      instructions." Zed's covers only its own agent's terminal tool. In a version-controlled
+      folder, Codex starts in its workspace-write sandbox, so the agent can write there; in any
+      other folder it starts read-only. Copilot admins can also make the CLI block the session
+      when it can't sandbox. Junie's sandbox is in early access, off by default, and not
+      available on Windows. OpenCode's docs say its shell "runs with the host user's
+      filesystem, process, and network authority", and its base permission rule allows
+      everything except .env files. Pi has no built-in permission system, and Aider's undo is
+      git. Devin gives each session its own VM. Claude Code docs: "On native Windows, Claude
+      Code runs commands unsandboxed." Copilot's Windows sandbox needs Windows 11 25H2 with
+      KB5124010 or later, or 26H1 with KB5124006 or later.</p>
+      <p>Source: research/round5-synthesis.md §4.3; round5-enterprise-harnesses.md §C1 (Copilot
+      sandbox off by default, corrects the synthesis), §C2 (Junie), §B3 (Windows);
+      round5-copilot-architecture.md (assisted permissions GA, Oct 26, 2026);
+      round5-google-amazon-jetbrains.md §1 Safety, §4 table and Verification pass item 5
+      (Antigravity Auto, not for business or enterprise accounts); round5-claude-code.md §5 and
+      §3 timeline (auto mode starting mode, 2.1.283/284, Sep 25 to 28); round5-openai-codex.md
+      §5; round2-agent-permission-models.md §2 (Codex folder defaults, fetched 30 Sep 2026);
+      round5-oss-ide-extensions.md §5.5 (Zed sandbox scope: terminal only, since the blog and
+      tools doc disagree on fetch); round5-oss-terminal.md short version and §3.</p>
+    </aside>
+  </section>
+
+  <section id="split-misses">
+    <span class="eyebrow">6 · classifier miss rates</span>
+    <h2>Classifiers miss and people get phished; among vendors, only Anthropic publishes the numbers</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="big">17%</div>
+        <div class="big-label">of 52 real overeager actions (the agent going further than asked) got past Claude Code's classifier</div>
+      </div>
+      <div class="stat">
+        <div class="big">0.4%</div>
+        <div class="big-label">of 10,000 real actions were blocked by mistake</div>
+      </div>
+      <div class="stat">
+        <div class="big">24/25</div>
+        <div class="big-label">red-team retries in which Claude Code sent <code>~/.aws/credentials</code> off the machine because a phished employee asked it to</div>
+      </div>
+    </div>
+    <blockquote>“The only defense that holds in this situation is the environment.”
+      <cite>Anthropic, How we contain Claude across products, May 2026</cite></blockquote>
+    <p class="src">Anthropic engineering blog: auto mode, Mar 2026; containment, May 2026 · Anthropic's own figures</p>
+    <aside class="notes">
+      <p>Anthropic measured its own product here. Codex, Copilot, Cursor and Antigravity also
+      ship a classifier, and none of them has published a miss rate.</p>
+      <p>The first two numbers come from the March 2026 post that introduced auto mode, where the
+      classifier approves or blocks each action so you aren't asked every time. On ten
+      thousand real actions, the classifier wrongly blocked 0.4%. On 52 real cases where the
+      agent went further than the user wanted, it let 17% through. The post calls that "the
+      honest number". For comparison, people approved 93% of manual prompts, so the human
+      click was a weak check too.</p>
+      <p>The third number is from a May 2026 post. In a February red-team test (Anthropic staff
+      attacking their own setup on purpose), an employee was phished into starting Claude Code
+      with a prompt that read the AWS credentials file and posted it to an outside server.
+      Across 25 retries, Claude did it 24 times. The instruction came through the user, so the
+      agent was doing what it had been asked to do. Anthropic's conclusion is the quote on the
+      slide, and its design principle comes back in the last section.</p>
+      <p>Backup (do not read aloud): the auto mode post also says it "is not a drop-in
+      replacement for careful human review on high-stakes infrastructure". Limits: 52 is a
+      small sample, the post is from March, and the classifier model has changed since;
+      Anthropic has published no newer figures. Cursor's docs say "The classifier can make
+      mistakes" and give no rate. GitHub's assisted permissions changelog gives no rate
+      either. If someone cites an 81% miss rate for Claude Code from a third-party test: one
+      write-up reports it on 128 ambiguous DevOps scenarios with a different method, and we
+      have not verified it. The containment quote continues "specifically egress
+      controls".</p>
+      <p>Source: research/round5-claude-code.md §5 (auto mode table, containment post) and
+      Verification pass items 1 and 2; round5-cursor-cognition.md §A5; round5-synthesis.md
+      §4.3; round5-google-amazon-jetbrains.md §4 table (Antigravity Auto classifier). Third-party
+      81% figure: besthub.dev write-up, reported by the 2026-11-05 fact check, unverified.</p>
+    </aside>
+  </section>
+
+  <section id="split-surface">
+    <span class="eyebrow">8 · where the work happens</span>
+    <h2>Vendors run agents in several places and disagree on which comes first</h2>
+    <div class="map">
+      <div class="group">
+        <h3>Terminal and desktop app</h3>
+        <p>Amp dropped its VS Code and Cursor extensions in March. Antigravity 2.0 app: “there is no IDE.”</p>
+      </div>
+      <div class="group">
+        <h3>IDE</h3>
+        <p>JetBrains keeps agents in the IDE, using its debugger and code index: “Code becomes cheaper to generate but more expensive to verify.”</p>
+      </div>
+      <div class="group">
+        <h3>Cloud</h3>
+        <p>Devin, Cursor, Copilot and Codex run agents on remote machines.</p>
+      </div>
+      <div class="group">
+        <h3>Spec first</h3>
+        <p>Kiro's agent writes requirements, design and tasks for you to approve before coding.</p>
+      </div>
+    </div>
+    <p class="src">Amp blog, Feb 2026 · Google, Antigravity 2.0, May 2026 · JetBrains, Air, Sep 2026 · Kiro blog, Jul 2025</p>
+    <aside class="notes">
+      <p>Question seven, whose models, waits for section 5. Question eight: where does the
+      work happen? Some vendors are leaving the editor. Amp announced in February that its VS
+      Code and Cursor extensions would "self-destruct on March 5", saying an editor sidebar
+      held the models back. Google describes its Antigravity 2.0 desktop app with the line
+      "there is no IDE", though it still ships a separate Antigravity IDE.</p>
+      <p>JetBrains argues the other way. CEO Kirill Skrygan wrote in September that the
+      bottleneck shifts to "understanding, verifying, and owning it", and JetBrains' agents use
+      the IDE's own debugger and code index for that work. Cursor sits in between, with a
+      separate Agents Window and continued work on its IDE.</p>
+      <p>Cloud means the agent works on a remote machine and you get a pull request back.</p>
+      <p>Spec first is Kiro's bet: the agent writes the requirements, the design and a task list
+      as files, you approve them, and then it codes. Plan mode, which most harnesses now have,
+      is a lighter version of the same idea.</p>
+      <p>The Copilot harness runs behind VS Code, JetBrains, the CLI, the Copilot app and cloud
+      sessions.</p>
+      <p>Backup (do not read aloud): Google's framing goes back to 2025: "the surfaces are
+      embedded into the agent". Cursor said in April: "We will also continue to invest in the
+      IDE until codebases are self-driving." Devin started in the cloud; Cursor, Copilot and
+      Codex all have cloud agents now. Marc Brooker on the Kiro blog, July 2025 (older than the
+      rest): "A specification is a kind of (version controlled, human-readable) super prompt."
+      Birgitta Böckeler at Thoughtworks, October 2025: "To be honest, I'd rather review code
+      than all these markdown files."</p>
+      <p>Source: research/round5-platforms-research.md §3.1, §3.9 (Amp extensions);
+      round5-google-amazon-jetbrains.md §1.1, §1.5 (Antigravity; "there is no IDE" is the
+      App), §2.4 (Kiro, Brooker), §3.4 (Skrygan); round5-cursor-cognition.md §A8 (Cursor IDE
+      quote); round5-philosophy-direction.md §1.6 (Böckeler); round5-synthesis.md §4.9, §4.10
+      and the GitHub Copilot row in §2 (surfaces).</p>
+    </aside>
+  </section>
+
+
+    </section>
+
+
+<!-- Part 05 · Philosophies: section opener and four phil- slides (labs, platform owners, agent companies, open source) -->
+    <section>
+      <section class="opener" id="phil-intro">
+        <span class="secnum">05</span>
+        <h1>Philosophies</h1>
+        <p class="sub">What each maker says it is betting on, in its own words, next to one thing it shipped that fits.</p>
+        <aside class="notes">
+          <p>About five minutes for this section. We've compared the parts of each harness: tools, search, edits
+          and permissions. Now we look at the reasons the makers give for building them that way.</p>
+          <p>Every slide in this section has the same layout: the bet in one plain line, a quote from someone
+          at the company with the month it was said, and one thing the company shipped that matches the quote.
+          The slides carry only what the makers said or shipped.</p>
+          <p>Source: research/round5-philosophy-addendum.md §9 (summary table); research/round5-synthesis.md §5.</p>
+        </aside>
+      </section>
+
+      <section id="phil-labs">
+        <span class="eyebrow">05 · the model labs</span>
+        <h2>Each lab shapes its harness around its own models</h2>
+        <table>
+          <tr><th>Who</th><th>The bet</th><th>In their words</th><th>Shipped</th></tr>
+          <tr><td>Anthropic<br>Claude Code</td><td>Build a little ahead of today's model, and delete what the next one no longer needs</td><td>“…build something that works 20 or 30 percent of the time now, so that when the next model comes out, it works 80 percent of the time.”<br>Ben Mann, Jul 2026</td><td>Stopped offering its to-do list tools to newer Claude models (Aug 2026)</td></tr>
+          <tr><td>OpenAI<br>Codex</td><td>Train the model and the harness together</td><td>“So we do training on the harness now.”<br>Andrew Ambrosino, Oct 2026</td><td>A separate prompt and tool settings for each model, in one open file: <code>models.json</code></td></tr>
+          <tr><td>Google<br>Antigravity</td><td>One harness, tuned with Gemini, behind every Google product</td><td>“…Gemini 3.5 Flash having been optimized with the Antigravity harness.”<br>Varun Mohan, May 2026</td><td>Antigravity CLI, Gemini CLI's successor, runs the same harness as the desktop app (May 2026)</td></tr>
+        </table>
+        <p class="src">Anthropic, “The making of Claude Code”, Jul 2026 · Claude Code 2.1.233, Aug 2026 · Every, “How Codex Happened”, Oct 2026 · Codex repo, Nov 2026 · Google I/O, May 2026</p>
+        <aside class="notes">
+          <p>Start with the three companies that make both a model and a harness.</p>
+          <p>Anthropic: the quote is from Ben Mann, an Anthropic co-founder, on Anthropic's "making
+          of Claude Code" page from July. The bet is that the next model closes the gap, so you
+          build slightly ahead of what works today. In August, Claude Code stopped offering its
+          to-do list tools to newer Claude models. Anthropic's docs give the reason: newer models
+          keep track of multi-step work without a written checklist, and the tool definitions were
+          using up context. Boris Cherny, who created Claude Code, put it more briefly in February:
+          "never bet against the model."</p>
+          <p>OpenAI: Andrew Ambrosino works on Codex design and engineering. Anyone can check the
+          shipped part: the open-source Codex repo has a file, models.json, that stores its own
+          prompt and tool settings for each GPT model.</p>
+          <p>Google: Varun Mohan said this on stage in the I/O keynote in May. The same day, Google
+          announced that Gemini CLI users would move to Antigravity CLI, which runs the same
+          harness as the Antigravity desktop app.</p>
+          <p>Backup (do not read aloud): Mann leads Anthropic's Labs team. News reports say the
+          page went live about 7 July; the interviews were recorded February to May, and the exact
+          publication day is unconfirmed. The Cherny line comes from YouTube's automatic captions
+          of a YC interview, so say it and keep it off the slide. The Ambrosino quote is from
+          interview transcripts Every published on 15 October, which Every labels as not certified
+          verbatim. The June cutoff for Gemini CLI was covered in section 2.</p>
+          <p>Source: research/round5-claude-code.md §3 (task list tools) and §8 (Ben Mann; verification pass for the
+          July date); research/round5-philosophy-addendum.md §1.1 (Cherny, [P*]), §2.1 (Ambrosino), §3 (Mohan,
+          Gemini CLI transition post); research/round5-openai-codex.md §7 (models.json).</p>
+        </aside>
+      </section>
+
+      <section id="phil-platforms">
+        <span class="eyebrow">05 · the platform owners</span>
+        <h2>Platform owners let you pick the model and compete on the controls around it</h2>
+        <table>
+          <tr><th>Who</th><th>The bet</th><th>In their words</th><th>Shipped</th></tr>
+          <tr><td>GitHub, Microsoft<br>Copilot</td><td>A managed harness that sends each task to a suitable model</td><td>“…Microsoft runs the agent loop and sandbox, with governance and optimization built in from day one.”<br>Tina Schuchman and Vladimir Fedorov, Oct 2026</td><td>Copilot Fusion picks a model for each prompt, or has another model review the draft (Oct 2026)</td></tr>
+          <tr><td>AWS<br>Kiro</td><td>Let models suggest changes and let fixed rules accept or reject them</td><td>“Models can propose changes, but we use deterministic code to accept or reject them.”<br>Kiro team, Oct 2026</td><td>Machine-checked proofs of 70 properties of its own code (Nov 2026)</td></tr>
+          <tr><td>JetBrains<br>Junie, Air</td><td>Run any vendor's agent; people and the IDE's tools check the work</td><td>“An agent will not get the call at 3:00 am when something breaks.”<br>Kirill Skrygan, Sep 2026</td><td>Air in JetBrains IDEs ships with no agents and runs Codex, Claude Agent, Copilot, Gemini or Junie (early access, Oct 2026)</td></tr>
+        </table>
+        <p class="src">Microsoft blog, Oct 2026 · GitHub changelog and docs, Copilot Fusion, Oct 2026 · kiro.dev, Oct and Nov 2026 (Kiro’s own results) · JetBrains blog, Sep and Oct 2026</p>
+        <aside class="notes">
+          <p>These three already own a platform that developers pay for: GitHub, AWS and the
+          JetBrains IDEs. None of them ties you to one model vendor.</p>
+          <p>Microsoft: the line is from the October 28 post that launched the Copilot harness,
+          written by Tina Schuchman, Microsoft's corporate vice president for Foundry, and Vladimir
+          Fedorov, GitHub's CTO. The pitch is a managed service: Microsoft maintains the agent loop
+          and the sandbox, so you don't have to. Copilot Fusion, generally available the same day,
+          is the routing part.</p>
+          <p>Kiro: the quote comes from a post about how Kiro improves its own harness. An internal
+          tracer reads Kiro's runs, proposes one change at a time, and checks each change against a
+          control run. "Deterministic" means code that gives the same answer every time, unlike a
+          model. Kiro also used Lean, a tool for proofs a computer checks, and proved 70 properties
+          of its own code, for example that a subagent is never less restricted than its
+          parent.</p>
+          <p>JetBrains: Kirill Skrygan is the CEO, and the line is from the September post launching
+          Air. Air in the IDEs ships empty and runs whichever agent your company already pays for,
+          Copilot included.</p>
+          <p>Backup (do not read aloud): Fusion picks a model for each prompt, or has one model
+          draft and other models review it; that review wording is from GitHub's Fusion docs, and
+          the launch changelog describes a single reviewing model. Kiro's tracer puts each change
+          through a three-stage check. In the Lean work Kiro wrote exact mathematical descriptions
+          of 26 functions and looked at 96 candidate properties: Lean proved 70, 18 turned out false
+          and were reproduced in the real code, and the rest got partial results or bounded checks.
+          Kiro's post title says "its own harness", but the 26 functions span three codebases (the
+          agent server, Kiro CLI and Kiro Crew), so the slide says "its own code". Kiro's
+          permission rules are written in Cedar, the policy language from section 4, which Kiro
+          describes as formally verified. Skrygan's post also says the future of agentic
+          development "will be multi-vendor"; Air in the IDEs has been in early access since
+          October. If someone asks why GitHub keeps the Copilot harness closed while the SDK is
+          MIT-licensed: nobody at GitHub or Microsoft has said, and the "Open Source?" issue on the
+          copilot-cli repo has been open since September 2025 with no reply from staff.</p>
+          <p>Source: research/round5-philosophy-addendum.md §4 (Microsoft post, verification pass upgrade to [P];
+          licence question); research/round5-copilot-architecture.md §7 (Fusion; verification pass on docs versus
+          changelog wording); research/round5-google-amazon-jetbrains.md §2.2 (Cedar), §2.3 (kiro-trace quote, Lean
+          70 of 96, scope note), §3.3 (Air in IDEs), §3.4 (Skrygan).</p>
+        </aside>
+      </section>
+
+      <section id="phil-companies">
+        <span class="eyebrow">05 · the agent companies</span>
+        <h2>Agent companies split on models: train their own, mix several, or chase the newest</h2>
+        <table>
+          <tr><th>Who</th><th>The bet</th><th>In their words</th><th>Shipped</th></tr>
+          <tr><td>Cursor</td><td>Own the model as well as the harness</td><td>“…we’re training a significantly larger model from scratch…”<br>Cursor, May 2026</td><td>Its own Composer models, trained inside the Cursor harness (Composer 2.5, May 2026)</td></tr>
+          <tr><td>Cognition<br>Devin</td><td>Combine models for each task, its own included</td><td>“We can choose and combine the models best suited to the work, including our own…”<br>Cognition, Sep 2026</td><td>Devin Fusion: a frontier “lead” plans and reviews while a cheaper “sidekick” works in parallel (Jun 2026)</td></tr>
+          <tr><td>Amp</td><td>Build for this year's models and drop what older ones needed</td><td>“build for what the frontier models can do now, in 2026… Do not build for what once was.”<br>Amp, May 2026</td><td>The “Neo” rebuild dropped file rollback, user-invoked skills and default permission prompts (May 2026)</td></tr>
+        </table>
+        <p class="src">Cursor, Composer 2.5 post, May 2026 · Cognition, Series E post, Sep 2026, and Devin Fusion post, Jun 2026 · Amp, “Neo” post, May 2026, and “Who Cares About the Model?”, Jul 2026</p>
+        <aside class="notes">
+          <p>None of these companies started as a frontier lab (the few labs that train the newest,
+          most capable models) or with a big developer platform, so the model question is where
+          they differ most.</p>
+          <p>Cursor: the full sentence is "Together with SpaceXAI,
+          we're training a significantly larger model from scratch, using 10x more total compute."
+          SpaceXAI is the SpaceX group behind the Grok models, and Cursor has been part of SpaceX
+          since August. Cursor has not said whether the larger model has shipped, so don't claim it
+          has.</p>
+          <p>Cognition: the quote is from its Series E funding post in September. In Devin Fusion,
+          two agents run side by side: an expensive frontier model as the lead that plans and
+          reviews, and a cheaper model as the sidekick. Devin Fusion has nothing to do with Copilot
+          Fusion; the two only share a name.</p>
+          <p>Amp rebuilt its command-line tool as "Neo" in May. One feature it removed was
+          permission prompts: Amp now runs tools without asking, by default. Its stated reason:
+          "It's near-impossible to determine statically whether a tool invocation will be
+          destructive or not." If the room reacts, give it a moment, then move on.</p>
+          <p>Backup (do not read aloud): user-invoked skills, in the Amp row, are the ones you call
+          by name. Composer is Cursor's own model family, trained with
+          reinforcement learning (training by trial and reward) inside the Cursor harness; Cursor's
+          post says Composer 2.5 is built on Moonshot's Kimi K2.5 model. Cursor still offers
+          Anthropic, OpenAI and Google models alongside its own. Cognition's Series E sentence ends
+          "rather than tie customers to one provider". Cognition also trains its own models; SWE-2
+          came out in September. Amp swapped models with little fuss: on 29 July it moved its
+          default from Claude Opus 4.8 to GPT-5.6 Sol and wrote "Most Amp users switched from
+          Anthropic to OpenAI overnight." and "Nothing happened. Not a single complaint." By 4
+          November its medium mode was back on an Anthropic model, Claude Opus 5.5. Factory,
+          another agent company, said in its October "Droid 1.0" post: "We believe the best agent
+          harness is one built for every model."</p>
+          <p>Source: research/round5-cursor-cognition.md A1 and A7 (SpaceX ownership, Composer 2.5, from-scratch
+          quote, SpaceXAI naming, models page), B1 (Devin Desktop), B2 (Fusion), B7 (Series E quote, SWE-2);
+          research/round5-platforms-research.md §3.5 and §3.8 (Neo), §3.7 and §3.8 (default switch, Nov 4 routing;
+          verification pass item 7), §4.9 (Factory); research/round5-synthesis.md §5.</p>
+        </aside>
+      </section>
+
+      <section id="phil-open">
+        <span class="eyebrow">05 · open source</span>
+        <h2>Open-source harnesses either stay small, grow into platforms, or keep a person approving each step</h2>
+        <table>
+          <tr><th>Who</th><th>The bet</th><th>In their words</th><th>Shipped</th></tr>
+          <tr><td>Minimalists<br>Pi, Aider, mini-swe-agent</td><td>Build only what you need, and control what the model reads</td><td>“My philosophy in all of this was: if I don't need it, it won't be built.”<br>Mario Zechner (Pi), Nov 2025</td><td>Pi's system prompt and tool definitions together came in under 1,000 tokens (Nov 2025)</td></tr>
+          <tr><td>Platforms<br>OpenCode, Goose, OpenHands</td><td>Any model, any front end, and code anyone can inspect and extend</td><td>“Agent infrastructure should not be a black box.”<br>Olivia Greene (OpenHands), Jun 2026</td><td>OpenCode 2.0 builds nearly every feature as an internal plugin, 80+ of them (Oct 2026)</td></tr>
+          <tr><td>Human in the loop<br>Cline, Zed</td><td>A person approves each change and answers for the code</td><td>“Treat the code it writes like a PR from an external contributor…”<br>Mikayla Maki (Zed), Jan 2026</td><td>Cline asks before every file edit and terminal command unless you turn on auto-approve</td></tr>
+        </table>
+        <p class="src">Zechner, pi essay, Nov 2025 · OpenHands blog, Jun 2026 · Anomaly, “OpenCode 2.0”, Oct 2026 · Zed blog, Jan 2026 · Cline README, Nov 2026</p>
+        <aside class="notes">
+          <p>The minimalists. Mario Zechner wrote Pi, and his November 2025 essay says "if I don't
+          need it, it won't be built." In that essay, Pi's system prompt and tool definitions
+          together came in under 1,000 tokens. Be fair to Pi: the same essay said Pi would never
+          support MCP, and in September 2026 Pi added MCP as a built-in extension. Mini-swe-agent
+          is in this camp too.</p>
+          <p>The platforms. OpenCode, Goose and OpenHands want to be the open base layer, with any
+          model and any front end. The quote is from Olivia Greene's June post launching OpenHands'
+          Agent Canvas. OpenCode 2.0 builds nearly every feature as an internal plugin, more than
+          80 of them.</p>
+          <p>Human in the loop. Mikayla Maki of Zed wrote in January that code from an agent should
+          be reviewed the way you'd review a pull request from someone outside the team. Cline's
+          README says "Every file edit and terminal command requires your approval", and you can
+          switch on auto-approve one category at a time.</p>
+          <p>Backup (do not read aloud): the SWE-agent README says mini-swe-agent matches
+          SWE-agent's performance "while being much simpler." Aider has had no release since
+          February 2026 and its last merge was in May 2026, so treat it as history. OpenCode 2.0
+          shipped on npm in September and was announced in October. Zed's sandbox has been on by
+          default since August, but it covers only the terminal tool of Zed's own agent; file edits
+          and outside agents are not covered. The Zechner and Maki quotes are older than six
+          months; say so if asked.</p>
+          <p>Source: research/round5-oss-terminal.md §6 (Pi essay, under-1,000-token prompt, MCP reversal; verification
+          pass), §2 and verification pass (Aider: v0.86.2 on 2026-02-12, last merge 2026-05-22);
+          research/round5-platforms-research.md §1.8 (Greene), §2 (mini-swe-agent); research/round5-philosophy-addendum.md
+          §5 (OpenCode 2.0 note, Oct 12 date); research/round5-oss-ide-extensions.md §1.5 (Cline approvals), §5.5 (Zed
+          sandbox, terminal tool only), §5.7 (Maki).</p>
+        </aside>
+      </section>
+    </section>
+
+
+<!-- PART 06: section 6, "Where it is heading" (ids: next-open, next-shifts, next-said, next-legacy) and section 7, "What it means for us" (ids: us-open, us-copilot, us-transfer, us-close) -->
+
+    <!-- ================================================================
+         6 · WHERE IT IS HEADING
+         ================================================================ -->
+    <section>
+      <section class="opener" id="next-open">
+        <span class="secnum">06</span>
+        <h1>Where it is heading</h1>
+        <p class="sub">Four shifts that showed up in 2026 release notes, what vendors say
+        comes next, and a benchmark built on legacy code.</p>
+        <aside class="notes">
+          <p>About four minutes. The last slide is a benchmark built from legacy code in COBOL
+          and other old languages. The vendor quotes slide can be skipped if time is
+          short.</p>
+          <p>Source: research/round5-synthesis.md §6.</p>
+        </aside>
+      </section>
+
+      <section id="next-shifts">
+        <span class="eyebrow">06 · where it is heading</span>
+        <h2>Four shifts show up across the major vendors' 2026 release notes</h2>
+        <table>
+          <tr><th>Shift</th><th>Dated evidence (2026)</th></tr>
+          <tr><td>Agents run with nobody watching</td><td>Codex tasks started by Slack, Gmail or GitHub events (Aug) · Cursor Self-Hosted Machines (Sep 2) · Amp Self-Hosted Orbs (Oct 22) · GitHub Agentic Workflows generally available (Oct 28)</td></tr>
+          <tr><td>One screen for many sessions</td><td>Cursor 3 Agents Window (Apr 2) · Claude Code agent view (May 11, preview) · Devin Desktop (Jun 2) · Copilot app generally available (Jun 17) · JetBrains Air (Sep 22)</td></tr>
+          <tr><td>Orchestration written as code</td><td>The dynamic workflows from section 3: Claude Code, Copilot (preview) · Pi codemode: the model writes code that calls several tools (Sep 29)</td></tr>
+          <tr><td>Review is the bottleneck</td><td>Over 40% of GitHub PRs start as an agent's draft, by GitHub's own count (Sep) · review and security launches: Codex Security Cloud (Sep 29), Devin Security (Oct 26), Copilot code review Max (Oct 28)</td></tr>
+        </table>
+        <p class="src">Vendor changelogs and blogs, Apr to Oct 2026 · GitHub Octoverse, Oct 2026</p>
+        <aside class="notes">
+          <p>Row one. Agents now start and run while nobody has a chat window open. Codex added
+          tasks that Gmail, Slack or GitHub events can trigger. Cursor and Amp both let the agent
+          run on machines the customer controls, which is the enterprise answer to "I don't want
+          my code on someone else's computer". GitHub's Agentic Workflows are Markdown files that
+          compile to GitHub Actions jobs and can run on a schedule.</p>
+          <p>Row two. Once people run several agents at once, they need a list of them: a
+          sidebar of sessions, each local or in the cloud, each ending in a diff to review.</p>
+          <p>Row three. Orchestration means deciding which agent runs when and what it is given.
+          The dynamic workflows from section 3 do that in a script. Pi's codemode is the small
+          version: the model writes a bit of code that calls several tools, in
+          place of one tool call per turn.</p>
+          <p>Row four. GitHub's Octoverse says more than 40% of pull requests in September started
+          with an agent's first draft, up from 17% in March. Someone has to read all of those.
+          Many of the autumn's launches were review and security products.</p>
+          <p>Backup (do not read aloud): the four groups come from reading the year's release
+          notes for the vendors in our research, and every dated item is on a vendor page. The
+          Codex item has a month range in the release notes (August 10 to 29), so no exact day.
+          The VS Code team said in August: "When you assign work to an agent, it should just
+          continue its work, even when you're not actively watching." GitHub also says use of the
+          Copilot cloud agent grew 230% in a year. In Anthropic's words, a dynamic workflow script
+          "holds the loop, the branching, and the intermediate results itself", so the main
+          model's context window holds only the final answer. Two limits if anyone pushes back.
+          Cursor's self-hosted machines run the tools inside your network, but tool output still
+          goes back to Cursor's cloud for the model. The 40% is GitHub counting its own platform;
+          another tracker, Amplifying, found 20.8% in a sample of public PRs, so say "somewhere
+          between a fifth and two fifths" if challenged.</p>
+          <p>Source: research/round5-synthesis.md §6.1 and §6.3; round5-philosophy-direction.md
+          §3.1 to §3.3; round5-openai-codex.md §9 direction table; round5-cursor-cognition.md
+          A5, A9, B6 and B9; round5-copilot-architecture.md §2.1 (dynamic workflows, public
+          preview), §6, §8 and §9; round5-claude-code.md §2 and §9; round5-oss-terminal.md §6;
+          round3-customizations-and-automation.md §6b (Agentic Workflows schedules);
+          round5-adoption-market.md §2.1, §3.3 and its verification pass items 5 and 8.</p>
+        </aside>
+      </section>
+
+      <section id="next-said">
+        <span class="eyebrow">06 · where it is heading</span>
+        <h2>Vendors say the next step is more agents, started by events instead of prompts</h2>
+        <table>
+          <tr><th>Who, when</th><th>What they said</th></tr>
+          <tr><td>JetBrains, Kirill Skrygan · Sep 2026</td><td>“More work will be triggered by repository events, schedules, and delivery processes rather than by a developer opening an editor and issuing a prompt”</td></tr>
+          <tr><td>Cognition, Series E post · Sep 2026</td><td>“agents will become proactive by default, software will improve itself”</td></tr>
+          <tr><td>Zed, Nathan Sobo · Sep 2026</td><td>“We believe that threads will be the new fundamental unit of software development.”</td></tr>
+          <tr><td>Anthropic, Boris Cherny · Jul 2026</td><td>Dynamic workflows “let you orchestrate dozens, hundreds, thousands of agents to do work productively”</td></tr>
+        </table>
+        <p class="src">JetBrains Air post, Sep 2026 · Cognition, Sep 2026 · Zed Delta post, Sep 2026 · YC Root Access interview, Jul 2026</p>
+        <aside class="notes">
+          <p>Optional if short on time. These are statements of intent. None of them is a
+          shipped product, so present them as what each company says it is betting on.</p>
+          <p>JetBrains' CEO wrote the first one when he launched JetBrains Air in September. His
+          picture is work that starts from a repository event, a schedule or a delivery step,
+          with no one opening an editor to type a prompt.</p>
+          <p>"Proactive" means the agent notices work and starts on it without being asked. That
+          line is from Cognition's Series E funding post of September 8.</p>
+          <p>Zed is an open-source editor. A thread is one conversation with an agent, plus the
+          changes it made. Zed's Delta product, in public beta since September 16, is pitched as a
+          replacement for pull requests.</p>
+          <p>Boris Cherny leads Claude Code. He said it in a Y Combinator Root Access interview
+          published July 27, about the dynamic workflows from section 3.</p>
+          <p>Backup (do not read aloud): the Series E post carries no named author, so attribute
+          it to Cognition. One misquote to watch for: a line going round has Cherny telling the
+          room that "everyone in this room should be building" something with thousands of
+          agents. The interview host said that, and the word was "someone". Don't attribute it to
+          Cherny.</p>
+          <p>Source: research/round5-synthesis.md §6.2; round5-google-amazon-jetbrains.md §3.5
+          and verification item 11; round5-cursor-cognition.md B8 and B9;
+          round5-oss-ide-extensions.md §5.7 and §5.8; round5-claude-code.md §9 and its
+          verification pass ("Corrected" list).</p>
+        </aside>
+      </section>
+
+      <section id="next-legacy">
+        <span class="eyebrow">06 · where it is heading</span>
+        <h2>On legacy code the best model scored 60%, and a wrong program passed most tests</h2>
+        <div class="stats">
+          <div class="stat"><div class="big">60%</div><div class="big-label">best first-try score, on COBOL, Fortran, Java 7, C89, BASIC and Assembly tasks</div></div>
+          <div class="stat"><div class="big">24/29</div><div class="big-label">tests passed by a COBOL payroll program with a wrong result</div></div>
+          <div class="stat"><div class="big">$275</div><div class="big-label">health deduction it calculated; the right figure was $125</div></div>
+        </div>
+        <blockquote>“The output looked plausible, and the model reported success.”
+        <cite>Factory, Legacy-Bench · September 2026</cite></blockquote>
+        <p class="src">Factory, Legacy-Bench, Sep 2026 (benchmark built and run by a coding-agent vendor)</p>
+        <aside class="notes">
+          <p>That's what vendors say is coming. Here's what happened when agents met the kind of
+          code banks still run. Factory, a company that sells coding agents, published a benchmark
+          on September 24 made of tasks in old languages: COBOL, Java 7, BASIC, C89, Fortran and
+          Assembly. The best model, GPT-5.6 Sol, solved 60% on the first try. Claude Opus 5 got 52%
+          and GPT-6 Astra 51%.</p>
+          <p>The example on the slide is theirs. A COBOL payroll program compiled and passed 24
+          of 29 tests, but worked out a $275 health deduction where the right answer was $125.
+          The output looked fine and the agent said it had succeeded. Factory's summary:
+          "Legacy environments demand stronger verification precisely where they provide
+          weaker feedback."</p>
+          <p>Plenty of large companies run code like this. When an agent touches it, the tests the
+          agent ran are weaker evidence than they would be on a well-tested service.</p>
+          <p>Weigh the source. Factory built and ran this benchmark, and it sells to large
+          financial firms. Only ten "representative tasks" are public. The model list is from
+          September, so newer models are not on it.</p>
+          <p>Source: research/round5-platforms-research.md §4.8 and §4.9, and its verification
+          pass item 11; round5-synthesis.md §8 item 24.</p>
+        </aside>
+      </section>
+    </section>
+
+    <!-- ================================================================
+         7 · WHAT IT MEANS FOR US
+         ================================================================ -->
+    <section>
+      <section class="opener" id="us-open">
+        <span class="secnum">07</span>
+        <h1>What it means for us</h1>
+        <p class="sub">Where Copilot sits on each axis, and the findings that apply in any
+        harness.</p>
+        <aside class="notes">
+          <p>About three minutes. This section places Copilot on the axes from section 4, so
+          news about other tools has a reference point, then lists what we can use in Copilot
+          today.</p>
+          <p>Source: research/round5-synthesis.md §1 item 14.</p>
+        </aside>
+      </section>
+
+      <section id="us-copilot">
+        <span class="eyebrow">07 · what it means for us</span>
+        <h2>Copilot sits at the thick, multi-model end, with its OS sandbox off by default</h2>
+        <table>
+          <tr><th>Axis</th><th>Copilot, Nov 2026</th><th>Other pole, and who holds it</th></tr>
+          <tr><td>How much harness</td><td class="hl">Thick: Fusion routing, rubber duck reviews, memory, admin policy</td><td>Thin: mini-swe-agent, bash only; Claude Code removes tools as models improve</td></tr>
+          <tr><td>Finding code</td><td class="hl">grep plus a semantic index on GitHub's servers, CLI default since Oct 19</td><td>grep only: Claude Code, Codex, Cline; Cursor turned its semantic index off in July</td></tr>
+          <tr><td>Edit format</td><td class="hl">Local harness: <code>apply_patch</code> for GPT, string replace for Claude; the Copilot harness lists both</td><td>One format: Codex (<code>apply_patch</code>), Claude Code (string replace)</td></tr>
+          <tr><td>Safety</td><td class="hl">Manual approval by default in VS Code; assisted permissions generally available (Oct 26), miss rate unpublished; OS sandbox off unless an admin requires it</td><td>Sandbox on by default: Zed (Aug 5); allow-all by default: OpenCode</td></tr>
+          <tr><td>Models</td><td class="hl">20+ models plus your own API key, routing per prompt, Microsoft's own MAI-Code models</td><td>Built around one lab's models: Claude Code, Codex</td></tr>
+          <tr><td>Surface</td><td class="hl">One harness behind CLI, app, VS Code, JetBrains, Xcode (preview) and cloud</td><td>Cloud first: Devin, each session in its own VM</td></tr>
+        </table>
+        <p class="src">GitHub changelog and docs, Oct to Nov 2026 · VS Code 1.143 and 1.145 notes · Microsoft AI, MAI-Code-1-Flash, Jun 2026 · other poles: vendor docs as of 4 Nov 2026</p>
+        <aside class="notes">
+          <p>The last column names a product from the opposite end of each axis, so you can see
+          who disagrees with Copilot's choice.</p>
+          <p>How much harness. Copilot adds a lot around the loop: Fusion routing, the rubber duck
+          reviewer, memory, and admin settings that stop the session if it cannot confirm the
+          current policy.</p>
+          <p>Finding code. Copilot's CLI turned its semantic index on by default on October 19,
+          three months after Cursor turned its own off.</p>
+          <p>Edit format. The Local harness gives GPT models apply_patch and Claude models find
+          and replace. The Copilot harness lists both, but its runtime is closed, so we can't
+          confirm which model gets which.</p>
+          <p>Safety. In VS Code the default permission level is Manual, so Copilot asks before it
+          acts. Assisted permissions, Copilot's classifier, is generally available, but GitHub has
+          not published how often it gets a decision wrong. The OS sandbox is off unless
+          enterprise settings require it.</p>
+          <p>Models and surface. More than twenty models plus bring-your-own-key, and one harness
+          behind every Copilot front end.</p>
+          <p>Backup (do not read aloud): the other pole on harness size is mini-swe-agent, bash
+          and nothing else, and Claude Code has dropped its separate file-search tools on Mac and
+          Linux and its to-do tools for newer models. The CLI reference describes apply_patch as
+          "used by some models". The Manual default is from the VS Code docs of September 30.
+          Assisted permissions went generally available on October 26; no source says whether it
+          is on by default. The OS sandbox went generally available on October 7; on Windows it
+          needs a recent Windows 11 update (exact builds in the section 4 safety notes), and its
+          network rules there rely on "programs honoring the proxy settings". Microsoft says its
+          MAI-Code-1-Flash model, from June, "was trained directly with GitHub Copilot harnesses
+          used in production." Devin is the contrast on surface: its main product is a cloud
+          agent, and each session runs in its own VM. For Q&amp;A only: VS Code can also host
+          Anthropic's and OpenAI's own harnesses, in preview, and the admin setting that turns off
+          the Local harness also blocks those two. Whether we allow them is the platform team's
+          call.</p>
+          <p>Source: research/round5-synthesis.md §1 items 2 and 14, §2.1 Copilot row, §2.2
+          mini-swe-agent row, §4.1, §4.3, §4.4, §4.8, §4.12; round5-copilot-architecture.md §1,
+          §3.3, §5, §7, §9 and its verification pass (MAI-Code-1-Flash quote, assisted
+          permissions, VS Code 1.145 wording); round5-enterprise-harnesses.md §C1 and its
+          verification pass; round5-claude-code.md §3 (tools removed for new models);
+          round5-cursor-cognition.md short version and B2 (Devin VMs); round5-oss-terminal.md §6
+          (OpenCode defaults); round5-oss-ide-extensions.md verification item 10 (Zed sandbox
+          default since Aug 5); round2-vscode-copilot-setup.md "Agents and permission levels"
+          (Manual default).</p>
+        </aside>
+      </section>
+
+      <section id="us-transfer">
+        <span class="eyebrow">07 · what it means for us</span>
+        <h2>Five findings from the research apply to any harness, Copilot included</h2>
+        <table>
+          <tr><th>Finding</th><th>Evidence</th><th>In Copilot</th></tr>
+          <tr><td>Write down only what the agent can't infer</td><td>ETH Zurich: providing context files “does not generally improve task success rates” and adds over 20% to cost (Sep 2026)</td><td>Short copilot-instructions.md or AGENTS.md</td></tr>
+          <tr><td>Pair guides with sensors: preventive and detective controls</td><td>Böckeler: “Guides (feedforward controls)” and “Sensors (feedback controls)” (Apr 2026)</td><td>Guides: instructions, skills. Sensors: tests, linters, hooks</td></tr>
+          <tr><td>Fix the harness when a mistake repeats</td><td>Hashimoto: “engineer a solution such that the agent never makes that mistake again” (Feb 2026)</td><td>Add the rule, hook or skill</td></tr>
+          <tr><td>Contain first, then instruct</td><td>Anthropic: “Design for containment at the environment layer first” (May 2026)</td><td>Local sandbox, which admins can require</td></tr>
+          <tr><td>Budget time for review</td><td>56% of merged agent PRs in one public sample had no human reviewer (Jul to Aug 2026)</td><td>Copilot code review, then a human</td></tr>
+        </table>
+        <p class="src">Gloaguen et al., arXiv 2602.11988, v3 Sep 2026 · Böckeler, martinfowler.com, Apr 2026 · Hashimoto, “My AI Adoption Journey”, Feb 2026 · Anthropic, May 2026 · Amplifying, Nov 2026</p>
+        <aside class="notes">
+          <p>None of these needs a different tool. Everything in the right-hand column exists in
+          Copilot today; the instructions, hooks and skills are the ones we built in
+          October.</p>
+          <p>One. A team at ETH Zurich tested agents with and without an AGENTS.md-style file.
+          They found it "does not generally improve task success rates" and raised cost by over
+          20% on average. The files were useful for "specifying non-standard coding
+          practices".</p>
+          <p>Two. Birgitta Böckeler at Thoughtworks splits a harness into guides, which steer the
+          agent before it acts, and sensors, which check after it acts so it can correct itself.
+          In bank terms those are preventive and detective controls.</p>
+          <p>Three. Mitchell Hashimoto, co-founder of HashiCorp, the Terraform company, wrote in
+          February that when an agent makes a mistake, you engineer a fix so it never makes that
+          mistake again. In practice: the second time Copilot gets something wrong, add the
+          instruction, the hook or the skill.</p>
+          <p>Four. Anthropic's containment post says to contain at the environment layer first. In
+          Copilot that is the local sandbox, and an admin can make it mandatory.</p>
+          <p>Five. In one public sample of merged agent pull requests, 56% had no human
+          reviewer.</p>
+          <p>Backup (do not read aloud): ETH also found repository overviews did not help.
+          Augment ran its own study in April and found the best files were 100 to 150 lines with a
+          few focused reference documents, and the worst made results worse than no file; it is a
+          vendor study on its own benchmark. Thoughtworks' radar of November 4 put "agent
+          instruction bloat" in its Caution ring, moved agent sandboxing to Adopt ("a sensible
+          default for all agents"), and cautions against "human-in-the-loop theater", "keeping a
+          human in an agent's loop as an empty approval step rather than a real check."
+          Hashimoto's words, February 5: "anytime you find an agent makes a mistake, you take the
+          time to engineer a solution such that the agent never makes that mistake again." He
+          called the habit harness engineering. Anthropic's full line: "Design for containment at
+          the environment layer first, then steer behavior at the model layer." It is the same
+          post as the phishing result in section 4. Amplifying sampled 268 merged agent pull
+          requests in significant public repos (org-owned or at least 10 stars) between July 30
+          and August 28: 44% had a human reviewer and 56% had none. Copilot's PRs had the highest
+          published review rate, 80.5%, but Amplifying does not publish per-agent sample sizes and
+          withholds one agent, so quote only the 56% overall.</p>
+          <p>Source: research/round5-convergence-standards.md §1.2 table and verification item
+          12; round5-platforms-research.md §5.3; round5-philosophy-direction.md §1.7;
+          round5-philosophy-addendum.md §8 (Hashimoto, Feb 5, 2026, re-read; credit for
+          defining the term is disputed, so the slide quotes him only); round5-claude-code.md §5
+          and verification item 2; round5-adoption-market.md §2.2, §2.3, §6.1 and verification
+          items 5 and 14; round5-synthesis.md §8 items 21 and 22.</p>
+        </aside>
+      </section>
+
+      <section id="us-close">
+        <span class="eyebrow">07 · what it means for us</span>
+        <h2>Checked against sources on 4 November 2026</h2>
+        <p class="big">Questions</p>
+        <p class="src">The appendix maps each section to the research file behind it.</p>
+        <aside class="notes">
+          <p>Close with one line: every agent runs the same loop, and what the evidence backs
+          (short instructions, tests and hooks as checks, a sandbox, a real human review) is
+          already available in Copilot. Then thank people and open the floor. Remind them the
+          research stopped on 4 November, and some of it will have changed by the time they read
+          the slides.</p>
+          <p>Backup (likely questions, answer if asked). "Should we move to Claude Code or
+          Cursor?" Copilot is the approved tool; this talk is context for reading the news. "Is
+          Copilot behind?" In June GitHub tested its own harness against others on the same
+          models and reported "effective parity". The independent Scale result from section 1
+          points the same way, though it tested open-weight models in open-source harnesses, not
+          Copilot. "Can we use Claude in Copilot?" Copilot offers Claude models where our admins
+          have enabled them; the separate Claude harness inside VS Code is also an admin policy
+          setting.</p>
+          <p>Source: research/round5-synthesis.md §4.11 and §1 item 14;
+          round5-copilot-architecture.md §7 ("effective parity" study, Jun 25, 2026);
+          round5-harness-effect-evidence.md §5.2 and §6.1.</p>
+        </aside>
+      </section>
+    </section>
+
+
+<!-- PART 07: Appendix (ids: app-landscape-1, app-landscape-1b, app-landscape-2, app-landscape-2b, app-enterprise, app-enterprise-2, app-sources, app-avoid, app-avoid-2, app-log) -->
+
+    <!-- ================================================================
+         APPENDIX
+         ================================================================ -->
+    <section>
+      <section id="app-landscape-1">
+        <span class="eyebrow">appendix · vendor harnesses, labs and platforms</span>
+        <h2>Most vendor harnesses ship an OS sandbox and leave it off</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Source</th><th>Models</th><th>Edit tool</th><th>Finds code with</th><th>OS sandbox</th></tr>
+          <tr><td>Claude Code (Anthropic)</td><td>Closed</td><td>Claude only</td><td><code>Edit</code>: exact old and new text</td><td>grep and find through the shell; no index</td><td>Off; none on native Windows</td></tr>
+          <tr><td>Codex (OpenAI)</td><td>Apache-2.0 core; no outside PRs</td><td>OpenAI models, also via Bedrock, Vertex or local</td><td><code>apply_patch</code></td><td><code>rg</code>; no index</td><td>On</td></tr>
+          <tr><td>Gemini CLI (Google)</td><td>Apache-2.0</td><td>Gemini only</td><td><code>replace</code> plus an instruction field</td><td>ripgrep, glob; no index</td><td>Off unless started with <code>-s</code></td></tr>
+          <tr><td>Antigravity (Google)</td><td>Closed</td><td>Gemini; Claude via Vertex since Oct 2026</td><td><code>replace_file_content</code></td><td><code>grep_search</code>, research subagent</td><td>On in the app's default preset; off in the CLI</td></tr>
+          <tr><td>GitHub Copilot (GitHub)</td><td>Copilot harness proprietary; Local harness and SDK clients MIT</td><td>20+ models, own keys, Microsoft's MAI-Code models</td><td>String replace; <code>apply_patch</code> for some models</td><td>grep plus a semantic index, LSP</td><td>Off unless admins require it</td></tr>
+          <tr><td>Kiro (AWS)</td><td>Closed</td><td>Many vendors; Auto picks per task</td><td><code>write</code></td><td>grep, glob, LSP <code>code</code> tool</td><td>Off</td></tr>
+          <tr><td>Junie / Air (JetBrains)</td><td>Closed</td><td>Any, incl. own keys, local, a Copilot plan</td><td><code>Edit</code>, <code>Write</code></td><td>The IDE's own code index</td><td>Off; early access, macOS and Linux only</td></tr>
+        </table>
+        <p class="src">Vendor docs, repos and changelogs, checked 4 Nov 2026 · Antigravity, Kiro and Junie tool names read through a page summariser</p>
+        <aside class="notes">
+          <p>This is the lookup version of section 4, one row per harness. Don't present it in the
+          talk; point people here if they ask about a product we skipped.</p>
+          <p>Source says whether you can read the harness code. The edit and search columns
+          follow the editing and search slides in section 4. LSP is the language server, the
+          same engine your IDE uses for go-to-definition. OS sandbox is the operating-system
+          fence from section 1, here around the commands the agent runs.</p>
+          <p>Five of the seven ship a sandbox that is off until someone turns it on. Codex is
+          sandboxed by default, and <code>codex exec</code> (its headless mode) starts read-only.
+          Antigravity's desktop app turns it on in its default preset, but its CLI does not.</p>
+          <p>Questions may go further. Copilot's local sandbox became generally available on
+          October 7; its Windows requirements are on the deployment slide below. Claude Code
+          removed its Glob and Grep tools from the default set on macOS and Linux in April 2026
+          and searches through the shell instead. Gemini CLI's June licence change is on the
+          consolidation slide in section 2. The Antigravity, Kiro and Junie tool names came
+          back through a page summariser, so check them before quoting them.</p>
+          <p>Source: research/round5-synthesis.md §2.1 (table), §4.3, §7.1 (sandbox defaults
+          row); round5-enterprise-harnesses.md C1, C2, B3; round5-google-amazon-jetbrains.md
+          §1 to §3.</p>
+        </aside>
+      </section>
+
+      <section id="app-landscape-1b">
+        <span class="eyebrow">appendix · vendor harnesses, agent companies</span>
+        <h2>Agent companies find code with grep, a search subagent or an index</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Source</th><th>Models</th><th>Edit tool</th><th>Finds code with</th><th>Safety</th></tr>
+          <tr><td>Cursor (Anysphere, owned by SpaceX)</td><td>Closed</td><td>Many vendors, plus its own Composer and Grok</td><td>Not documented for 2026</td><td>Instant Grep, a local index; semantic index dropped Jul 2026</td><td>OS sandbox in auto-review mode; network blocked by default</td></tr>
+          <tr><td>Devin (Cognition)</td><td>Closed</td><td>Several vendors, plus its own SWE-2</td><td>Not documented</td><td>SWE-grep search subagent, DeepWiki</td><td>Cloud: a VM per session. CLI: opt-in, none on Windows</td></tr>
+          <tr><td>Amp (Amp Frontier Corp)</td><td>Not checked</td><td>Chosen by Amp behind a low, medium, high, ultra setting</td><td>Not documented</td><td>Search skill in its Task subagent</td><td>No approval prompts by default since May 2026; remote VMs</td></tr>
+          <tr><td>Droid (Factory)</td><td>Not checked</td><td>“model-independent by design”; own router</td><td><code>ApplyPatch</code>, seen in traces</td><td><code>rg</code> through its Execute tool</td><td>Seatbelt or bubblewrap with a domain proxy; four autonomy levels</td></tr>
+          <tr><td>Warp (Warp)</td><td>Client AGPL-3.0</td><td>Any model, and other vendors' harnesses</td><td>Not documented</td><td>Semantic index (“Codebase Context”)</td><td>Asks before commands, edits and MCP calls</td></tr>
+        </table>
+        <p class="src">Vendor docs and blogs, checked 4 Nov 2026 · Cursor forum and docs, Jul 2026 · Factory Droid 1.0 post, Oct 2026</p>
+        <aside class="notes">
+          <p>These five sell the agent itself. Cursor uses grep backed by its own local index,
+          and Factory calls <code>rg</code>. Devin and Amp send a separate search agent off to
+          find the right files and report back. Warp keeps a semantic index, the search by
+          meaning from section 4. Cursor's July switch away from its semantic index is on the
+          search slide there.</p>
+          <p>Seatbelt and bubblewrap, in the Droid row, are the standard sandboxing tools on
+          macOS and Linux.</p>
+          <p>Some cells are gaps. Cursor and Cognition don't document their 2026 edit tools, so
+          don't guess. The source column for Amp and Factory says "not checked" because our
+          research saw no public harness code but did not confirm it. Augment's Auggie is
+          missing because Augment sold it to Harness in October (section 2). Cursor's sandbox
+          applies in the recommended auto-review mode; its Run Everything mode has no sandbox and
+          no classifier.</p>
+          <p>Source: research/round5-synthesis.md §2.1, §2.4, §4.4; round5-cursor-cognition.md
+          short version, A3, A5 and the Devin CLI sandbox item in Part B;
+          round5-platforms-research.md comparison table, §3 (Amp), §4 (Factory), §6 (Warp) and
+          verification pass.</p>
+        </aside>
+      </section>
+
+      <section id="app-landscape-2">
+        <span class="eyebrow">appendix · open-source harnesses, terminal</span>
+        <h2>None of the open-source terminal agents sandboxes commands by default</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Licence, stars</th><th>Models</th><th>Edit tool</th><th>Finds code with</th><th>Safety</th></tr>
+          <tr><td>OpenCode (Anomaly)</td><td>MIT, 224,627</td><td>75+ providers</td><td><code>edit</code> (string replace); <code>apply_patch</code> for GPT</td><td>ripgrep grep and glob; no language servers in v2</td><td>No sandbox; base policy allows all, asks for <code>.env</code> files</td></tr>
+          <tr><td>Pi (Earendil)</td><td>MIT, 120,102</td><td>Any provider</td><td><code>edit</code> (old and new text)</td><td>bash; grep and find tools opt-in</td><td>No permission system; docs point to VMs and containers</td></tr>
+          <tr><td>Goose (Linux Foundation's AAIF)</td><td>Apache-2.0, 56,235</td><td>Any; “we prefer open models”</td><td>Not verified</td><td>Not verified</td><td>Sandbox removed; autonomous by default</td></tr>
+          <tr><td>Aider (Paul Gauthier)</td><td>Apache-2.0, 49,951</td><td>Any, through litellm</td><td>13 text formats (whole file, diff, unified diff…)</td><td>Tree-sitter repo map, ranked</td><td>None; a git commit per change</td></tr>
+          <tr><td>Qwen Code (Alibaba)</td><td>Apache-2.0, 29,015</td><td>Tuned for Qwen; other APIs too</td><td>Not verified</td><td>LSP, by the project's account</td><td>Opt-in: Seatbelt, Docker or Podman, a Linux sandbox</td></tr>
+        </table>
+        <p class="src">GitHub licences and star counts, 4 Nov 2026 · project READMEs and docs, Nov 2026</p>
+        <aside class="notes">
+          <p>Stars are GitHub bookmarks. They move daily and track attention; they say little about
+          how many people use a tool.</p>
+          <p>None of these runs commands in a sandbox unless you set one up. OpenCode's docs say
+          its shell "runs with the host user's filesystem, process, and network authority". Pi
+          "does not include a built-in permission system". Goose removed its experimental macOS
+          sandbox. Qwen Code has three sandbox options, all opt-in.</p>
+          <p>A few more details may come up. OpenCode's version 2 went to npm on September 11 and
+          was announced October 12. Aider has had no release since February 2026 and no merge
+          since May 2026. It is here as the historical reference for edit formats and repo maps. A repo map is a ranked outline
+          of the repo's files and functions, built with the Tree-sitter parser, that Aider sends
+          the model so it knows where things are. Goose's and Qwen Code's
+          edit tools are marked not verified because our research only saw them in one
+          unchecked source. Crush, from Charm, is left out for the same reason; Charm says its hooks
+          are "largely compatible with Claude Code hooks".</p>
+          <p>Source: research/round5-synthesis.md §2.2, §4.3; round5-oss-terminal.md short
+          version, §2 (Aider), §3 (OpenCode permissions), §4 (Goose), §6 (Pi) and verification
+          pass (stars, licences, Aider release dates); round5-enterprise-harnesses.md C3 (Qwen Code sandbox).</p>
+        </aside>
+      </section>
+
+      <section id="app-landscape-2b">
+        <span class="eyebrow">appendix · open-source harnesses, editors and platforms</span>
+        <h2>Of these editor agents, only Zed sandboxes by default</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Licence</th><th>Models</th><th>Edit tool</th><th>Finds code with</th><th>Safety</th></tr>
+          <tr><td>Cline (Cline Bot Inc.)</td><td>Apache-2.0</td><td>Any; leaning to open-weight models</td><td><code>editor</code> or <code>apply_patch</code> by model, never both</td><td>grep-style search; no index, by choice</td><td>No sandbox; asks before every edit and command</td></tr>
+          <tr><td>Kilo Code (Anaconda)</td><td>MIT</td><td>500+ models</td><td><code>edit</code>, <code>write</code>; <code>apply_patch</code> for some models</td><td>grep and glob; opt-in semantic index</td><td>Seatbelt or bubblewrap, off; none on Windows</td></tr>
+          <tr><td>Zed Agent (Zed Industries)</td><td>GPL-3.0</td><td>Any</td><td><code>edit_file</code>, <code>write_file</code></td><td>grep, find_path, diagnostics</td><td>On by default for the terminal tool since 1.14 (Aug 2026)</td></tr>
+          <tr><td>OpenHands</td><td>MIT</td><td>100+ providers</td><td>String replace; <code>apply_patch</code> for GPT</td><td>grep, glob</td><td>Optional Docker and others; an LLM rates each action's risk</td></tr>
+          <tr><td>mini-swe-agent (Princeton, Stanford)</td><td>MIT</td><td>Any</td><td>bash only (sed, heredoc)</td><td>grep in bash</td><td>Runs in the environment you pick: Docker, Podman and others</td></tr>
+        </table>
+        <p class="src">Project docs, READMEs and blogs, checked 4 Nov 2026 · Zed sandboxing post, Aug 2026 · Cline README, Nov 2026</p>
+        <aside class="notes">
+          <p>The first three live inside an editor. Cline's ask-first design is covered in
+          section 5; auto-approve switches it off. Kilo has a sandbox you can turn on, but not on
+          Windows. Zed turned its sandbox on by default for the terminal tool in version 1.14 in
+          August. It does not cover file edits, MCP servers or other agents running inside
+          Zed.</p>
+          <p>OpenHands and mini-swe-agent are platforms and research harnesses. OpenHands' risk
+          rater is a model, and its own docs say "LLM-based security analysis is subject to
+          adversarial prompts and inconsistent classification." mini-swe-agent gives the model
+          only a bash shell, and its authors say it has superseded their older SWE-agent.</p>
+          <p>Roo Code and Continue, from the field slide, are left out because they are gone
+          (section 2 has the dates). Kilo's semantic index cell came back through a page
+          summariser; its sandbox defaults were checked on the page.</p>
+          <p>Source: research/round5-synthesis.md §2.3, §2.4, §4.3; round5-oss-ide-extensions.md
+          §1 (Cline), §3 (Kilo), §5 (Zed) and verification pass; round5-platforms-research.md
+          §1 (OpenHands), §2 (mini-swe-agent).</p>
+        </aside>
+      </section>
+
+      <section id="app-enterprise">
+        <span class="eyebrow">appendix · deployment for a bank, big vendors</span>
+        <h2>Four of the big vendor harnesses can sandbox commands on native Windows</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Where the model runs</th><th>Data retention</th><th>OS sandbox on native Windows</th></tr>
+          <tr><td>GitHub Copilot</td><td>GitHub's endpoints; own keys allowed; no self-hosted option</td><td>github.com chat: “for the life of the account” (Aug 2026). CLI and IDE: not verified</td><td>Yes (MXC), off unless admins require it; Windows 11 25H2 or 26H1 with recent updates</td></tr>
+          <tr><td>Claude Code</td><td>Anthropic, or your own Bedrock, Google Cloud or Microsoft Foundry account</td><td>30 days standard; zero retention by arrangement, “not included in the standard Enterprise plan”</td><td>No: “On native Windows, Claude Code runs commands unsandboxed.”</td></tr>
+          <tr><td>Codex</td><td>OpenAI, Bedrock (incl. GovCloud) or Vertex; local open models</td><td>Work Cloud local access “does not provide strict zero data retention”</td><td>Yes (MXC, on compatible Windows 11 builds), on</td></tr>
+          <tr><td>Cursor</td><td>Through Cursor's backend, even with your own key</td><td>“zero data retention (ZDR) agreements with all providers”</td><td>Not documented</td></tr>
+          <tr><td>Devin</td><td>Cognition's cloud, in a single-tenant VPC</td><td>Paid plans can turn on zero retention with model providers</td><td>CLI: none</td></tr>
+          <tr><td>Kiro</td><td>Amazon Bedrock, data kept in your profile's Region</td><td>Enterprise users opted out of telemetry and content collection</td><td>Yes (AppContainer), off; one-time admin setup</td></tr>
+          <tr><td>Antigravity</td><td>Gemini Enterprise API, through your Google Cloud project</td><td>Logged to your Google Cloud project; terms not on the page</td><td>Yes (AppContainer); app on, CLI off</td></tr>
+        </table>
+        <p class="small">Reference notes taken from public vendor docs. This is not an evaluation or a recommendation.</p>
+        <p class="src">Vendor privacy, admin and sandbox docs, checked 4 Nov 2026 · GitHub changelog, 28 Aug 2026 · Kiro and Antigravity hosting and Windows cells, and the Cursor backend cell, read through a summariser</p>
+        <aside class="notes">
+          <p>This slide and the next are for anyone who asks how these tools are deployed. They
+          record what each vendor's public docs said on 4 November, without testing or ranking
+          the products.
+          Copilot, Codex, Kiro and Antigravity can wall off the agent's commands on native
+          Windows.
+          Claude Code's docs say it can't. Cursor's docs don't say either way. Copilot's sandbox is off
+          until an admin turns it on, and it needs a recent Windows 11 build.</p>
+          <p>Some terms in the table are new. Zero data retention, ZDR, means the provider deletes prompts and outputs
+          after answering. A VPC is a private network section inside a cloud provider. GovCloud
+          is AWS's region for US government workloads. Bring your own key means using your own
+          account with the model provider instead of the vendor's. MXC is Microsoft eXecution
+          Container, the sandbox layer under Copilot and Codex. AppContainer is the app isolation
+          feature built into Windows.</p>
+          <p>More on Copilot, if asked. On Windows, GitHub's docs say the sandbox "relies on
+          programs honoring the proxy settings", so its network limits are weaker than on macOS
+          and Linux. Enterprise managed settings can require the sandbox and fail closed: the
+          CLI "blocks model requests and tool execution for the session if it cannot enforce
+          sandboxing." Telemetry can go to our own collector over OpenTelemetry, with prompt and
+          response capture off by default. Since June 1 Copilot bills in AI credits: 1,900 per
+          Business user and 3,900 per Enterprise user each month, "1 AI credit = $0.01 USD",
+          with paid overage enabled by default. Copilot has no self-hosted model option.</p>
+          <p>People often quote 28 days for Copilot CLI and IDE retention. That number
+          comes only from community posts and press, so don't repeat it. The 28 days for
+          github.com chat is out of date since GitHub's August 28 changelog.</p>
+          <p>Source: research/round5-enterprise-harnesses.md B1, B2, B3, C1 and verification
+          pass; round5-synthesis.md §4.12.</p>
+        </aside>
+      </section>
+
+      <section id="app-enterprise-2">
+        <span class="eyebrow">appendix · deployment for a bank, on-prem</span>
+        <h2>Five vendors document an on-prem or air-gapped option</h2>
+        <table class="compact">
+          <tr><th>Harness</th><th>Deployment</th><th>Models</th><th>Watch for</th></tr>
+          <tr><td>Tabnine</td><td>SaaS, VPC, on-prem Kubernetes, “completely air-gapped environment”</td><td>Bedrock, Azure OpenAI, Vertex, OpenAI-compatible</td><td>Old CLI “in maintenance mode”; its successor is a Tabnine build of OpenCode</td></tr>
+          <tr><td>IBM Bob</td><td>SaaS and on-prem, “including air-gapped environments”</td><td>Claude, Mistral open models, IBM Granite</td><td>IBM's 45% productivity figure is self-reported by users</td></tr>
+          <tr><td>JetBrains AI Enterprise</td><td>On-prem OpenAI-compatible servers (vLLM, llama.cpp); air-gapped supported</td><td>Any, including local models</td><td>Not stated whether Junie and Air work air-gapped</td></tr>
+          <tr><td>GitLab Duo</td><td>Self-Managed, with self-hosted models through its AI Gateway</td><td>vLLM, Bedrock, Azure OpenAI, Anthropic, OpenAI</td><td>If the sandbox can't apply, a flow “runs directly with a warning message” unless admins require it</td></tr>
+          <tr><td>Mistral Vibe</td><td>“on-premises, in a private cloud, or on Mistral Cloud”</td><td>Devstral 2 and other Mistral models</td><td>No OS sandbox</td></tr>
+          <tr><td>Any open-source harness</td><td>Anywhere, with a local model</td><td>Whatever endpoint you configure</td><td>Retention follows the model endpoint</td></tr>
+        </table>
+        <p class="small">Reference notes taken from public vendor docs. This is not an evaluation or a recommendation.</p>
+        <p class="src">Vendor deployment docs and product pages, checked 4 Nov 2026 · Tabnine docs, Sep 2026 · IBM press release, Apr 2026, and product page · GitLab docs, release 19.6 · Mistral Vibe model and sandbox cells read through a summariser</p>
+        <aside class="notes">
+          <p>Air-gapped means no connection to the internet at all; on-prem means the servers sit
+          in our own data centre. Of the vendors we checked, these five document one of those
+          options, plus any open-source harness pointed at a model we host ourselves. Copilot,
+          Claude Code, Codex, Cursor, Devin, Kiro, Antigravity and Grok Build all need a vendor or
+          cloud endpoint.</p>
+          <p>Several of these borrow their core from open source. Tabnine's new command line
+          tool is a Tabnine build of OpenCode, with the provider locked to Tabnine. GitLab's
+          remote flows run inside Anthropic's open-source sandbox runtime, the same component
+          under Claude Code and Junie's sandbox mode. Since GitLab 19.6 an admin can require the
+          sandbox, which fails the job instead of running without it.</p>
+          <p>Some of this came through a summariser: GitLab's offline install page, and
+          Mistral's Devstral 2 and no-sandbox lines. Whether
+          JetBrains' agents work in an air-gapped install is not stated anywhere we found. IBM's
+          45% figure comes from users it surveyed, so call it IBM's claim. Tabnine's old CLI gets
+          critical fixes only until December 31, 2026.</p>
+          <p>If someone asks what the industry calls the shared layer: Thoughtworks' Radar,
+          November 4, put "enterprise harness" in Assess and advised "keep the enterprise harness
+          thin and federated, leave room for experimentation and harvest what works."</p>
+          <p>Source: research/round5-enterprise-harnesses.md Part A (A1 Tabnine, A2 GitLab Duo,
+          A4 IBM Bob, A8 Mistral Vibe), B1, C4 and verification pass; round5-synthesis.md §2.5,
+          §4.12; round5-adoption-market.md §6.1 (Thoughtworks).</p>
+        </aside>
+      </section>
+
+      <section id="app-sources">
+        <span class="eyebrow">appendix · sources</span>
+        <h2>Every claim in the deck traces to a round 5 research file</h2>
+        <table class="compact">
+          <tr><th>Section</th><th>Research files (in research/, each named round5-…)</th></tr>
+          <tr><td>1 · The loop</td><td>synthesis §3.1, §3.3 · claude-code · convergence-standards · copilot-architecture · harness-effect-evidence · openai-codex · platforms-research</td></tr>
+          <tr><td>2 · The field</td><td>synthesis §1, §2, §6.1 · adoption-market · enterprise-harnesses · google-amazon-jetbrains · oss-terminal · oss-ide-extensions · platforms-research · cursor-cognition · copilot-architecture · openai-codex · philosophy-direction</td></tr>
+          <tr><td>3 · What they share</td><td>synthesis §1, §3 · convergence-standards · copilot-architecture · openai-codex · google-amazon-jetbrains · claude-code · oss-terminal · cursor-cognition · enterprise-harnesses · harness-effect-evidence · philosophy-direction</td></tr>
+          <tr><td>4 · Where they split</td><td>synthesis §3.5, §4.1 to §4.10, §8 · all fourteen round 5 files</td></tr>
+          <tr><td>5 · Philosophies</td><td>synthesis §5 · philosophy-addendum · platforms-research · claude-code · openai-codex · copilot-architecture · cursor-cognition · google-amazon-jetbrains · oss-terminal · oss-ide-extensions</td></tr>
+          <tr><td>6 · Where it is heading</td><td>synthesis §1, §6.1 to §6.3, §8 · philosophy-direction · adoption-market · claude-code · openai-codex · copilot-architecture · cursor-cognition · google-amazon-jetbrains · oss-terminal · oss-ide-extensions · platforms-research §4.8 (Legacy-Bench)</td></tr>
+          <tr><td>7 · What it means for us</td><td>synthesis §1, §4, §8 · copilot-architecture · enterprise-harnesses · harness-effect-evidence · convergence-standards · platforms-research · philosophy-direction · claude-code · adoption-market · oss-terminal · google-amazon-jetbrains</td></tr>
+          <tr><td>Appendix</td><td>synthesis §2, §4.12, §7, §8 · enterprise-harnesses · the verification pass in every file</td></tr>
+        </table>
+        <p class="src">Round 5 files fetched and verified 4 Nov 2026; four round 5b gap files added the same day</p>
+        <aside class="notes">
+          <p>You won't present this slide; it tells anyone checking the deck where to look.</p>
+          <p>Each claim in a research file carries a tag that says how it was checked. P means
+          someone read the primary source, the vendor's or author's own page, and matched the
+          wording. P-star means the page is primary but the wording came through a summarising
+          tool. S means secondary sources only, and R means the claim was checked and found
+          wrong. The slides use only P claims, plus a few P-star ones flagged in the notes.</p>
+          <p>Every file ends with a verification pass, a second check of the file against the
+          live pages. Where the verification pass and the body disagree, the verification pass
+          wins. The synthesis folds in all fourteen files, including the four gap files
+          (harness-effect-evidence, adoption-market, enterprise-harnesses, philosophy-addendum);
+          where the synthesis and a file's verification pass disagree, the file wins.</p>
+          <p>The writing rules for slide and notes text are in
+          research/round4-ai-writing-patterns.md §11.</p>
+          <p>Source: research/round5-synthesis.md front matter and tag paragraph; research/INDEX.md.</p>
+        </aside>
+      </section>
+
+      <section id="app-avoid">
+        <span class="eyebrow">appendix · claims not to repeat (1 of 2): evidence and market</span>
+        <h2>These claims circulate, and the sources do not support them</h2>
+        <table class="compact">
+          <tr><th>Do not say</th><th>What the sources support</th></tr>
+          <tr><td>Opus 4.5 scores 45.9% under Scale's harness and 55.4% under Claude Code</td><td>The measured scores are 45.89% and 49.75%, a 3.9-point gap; 55.4% was another model's score</td></tr>
+          <tr><td>Using Copilot costs 10 to 20 points against Claude Code or Codex</td><td>The evidence does not support it; GitHub's own same-model test found “effective parity”</td></tr>
+          <tr><td>The harness matters more than the model, as a general rule</td><td>Large effects appear where the harness fixes a real limit; in Scale's study (section 1) the task mattered far more than the harness</td></tr>
+          <tr><td>Terminal-Bench 4.0 shows harness X beating harness Y on the same model</td><td>No source we read has such rows; the official board appears to list one agent per model</td></tr>
+          <tr><td>AGENTS.md improves success rates</td><td>The largest controlled study found no general improvement and over 20% higher cost</td></tr>
+          <tr><td>Cursor's semantic search adds 23.5% over grep</td><td>12.5% average gain (Nov 2025); 23.5% was the top of a per-model range</td></tr>
+          <tr><td>Claude Code sends 80% less context</td><td>The cut was to system prompt text; tool definitions still make up most of the request</td></tr>
+          <tr><td>METR now shows AI makes developers 18% faster</td><td>METR calls that estimate unreliable and published no corrected number</td></tr>
+          <tr><td>Claude Code has 83% market share</td><td>83% of agent-attributed public GitHub commits and PRs (Amplifying, Nov 2026); private repos are not counted</td></tr>
+          <tr><td>Codex has 35 million weekly users</td><td>No primary 2026 Codex user count was found</td></tr>
+          <tr><td>JetBrains is a Gartner Leader</td><td>Not supported by any source we read; the report itself is gated</td></tr>
+          <tr><td>Thoughtworks put Copilot on Hold</td><td>Copilot's last Radar entry is Trial, Apr 2024: it “remains our default choice”</td></tr>
+          <tr><td>Copilot daily users rose 5x</td><td>That line on Microsoft's call is about its unified Copilot, not GitHub Copilot</td></tr>
+          <tr><td>The 2026 DORA report says…</td><td>dora.dev has no 2026 annual report as of 4 Nov; cite the Jun 2026 post by name</td></tr>
+          <tr><td>190 Claude Code releases in six months</td><td>165 published releases, 4 May to 3 Nov 2026</td></tr>
+          <tr><td>Copilot's runtime is 15.9x faster after the Rust port</td><td>One workload; the author says it is not universally “15.9x faster”</td></tr>
+        </table>
+        <p class="src">Corrections recorded in the research verification passes, 4 Nov 2026</p>
+        <aside class="notes">
+          <p>Keep this slide and the next in your back pocket. Each line on the left is
+          something you may hear from the audience or read in a blog post.</p>
+          <p>On the first line: a May 2026 paper (arXiv 2605.23950) printed 45.9%
+          against 55.4% for the same model, but it copied a table of self-reported scores.
+          Augment, which ran Claude Code, Cursor and its own Auggie on the same 731 tasks, got
+          49.75%, 50.21% and 51.80% (Augment's own run; the Auggie number is a vendor claim),
+          against 45.89% for the SWE-Agent baseline it took from Scale's leaderboard. The 55.4% was another model's baseline in a Morph post.</p>
+          <p>On the harness-versus-model line, point back to the Lewis and Scale rows in
+          section 1. The harness helped a lot when the context window was small and not at all
+          when it was large.</p>
+          <p>Terminal-Bench, in the fourth row, is a public benchmark of coding tasks done in a
+          terminal.</p>
+          <p>Several market lines stretch a real number. The 83% counts commits and pull
+          requests in public repos that carry an agent's mark. Amplifying, who publish it, say Copilot and Devin are understated
+          because they sell mostly into private repos. For Codex, press reported "more than 5
+          million weekly active users" in June, citing OpenAI, but we could not read that on an
+          OpenAI page. The 15.9x figure is from Stephen Toub's September post on porting the
+          runtime behind the Copilot harness to Rust, where he wrote that the runtime is "not universally “15.9x
+          faster.”"</p>
+          <p>These are also refuted but not on the slide: Meta-Harness "beat the best hand-built harness by
+          1.7" (Capy scores higher; the margin over Capy is 1.1); "Barbaste et al. measured that
+          loop sophistication does not matter" (they compared self-reported scores); SWE-Bench
+          Pro Verified described as a study of "misgraded trials"; and the Datacurve "a third
+          of trials misgraded" figure, which has no primary source.</p>
+          <p>Source: research/round5-harness-effect-evidence.md §1.1, §2, §3, §4, §6.1, §8.1 and
+          verification pass; round5-adoption-market.md §2, §3.1, §4.3, §6.1 and verification
+          pass; round5-convergence-standards.md §8 (refuted list); round5-philosophy-direction.md
+          §4 (METR); round5-claude-code.md verification pass (release count);
+          round5-copilot-architecture.md §10; round5-synthesis.md §1 item 14 and §8 avoid list.</p>
+        </aside>
+      </section>
+
+      <section id="app-avoid-2">
+        <span class="eyebrow">appendix · claims not to repeat (2 of 2): products and quotes</span>
+        <h2>These product details went stale, and these quotes were reworded</h2>
+        <table class="compact">
+          <tr><th>Do not say</th><th>What the sources support</th></tr>
+          <tr><td>Cursor uses a semantic index, or a “trigram” index</td><td>Semantic index turned off Jul 2026; Instant Grep uses “Sparse N-grams”</td></tr>
+          <tr><td>Codex uses Landlock on Linux</td><td>bubblewrap plus seccomp since version 0.115 (Mar 2026)</td></tr>
+          <tr><td>“GPT-6-Codex”; “Composer 3 launched”</td><td>OpenAI's docs list no Codex-branded GPT-6; Cursor's models page lists no Composer 3 (4 Nov)</td></tr>
+          <tr><td>Pi will never support MCP</td><td>Pi added MCP in version 0.99.0 (29 Sep 2026)</td></tr>
+          <tr><td>The Copilot harness is open source</td><td>The SDK clients and the older Local harness are MIT; the Copilot harness itself is proprietary</td></tr>
+          <tr><td>Copilot keeps github.com chat for 28 days</td><td>“for the life of the account” (GitHub changelog, 28 Aug 2026)</td></tr>
+          <tr><td>Copilot CLI's sandbox allows local network access by default</td><td>Off in the CLI, on in the Copilot app</td></tr>
+          <tr><td>Junie has no sandbox</td><td>Early-access sandbox mode on macOS and Linux</td></tr>
+          <tr><td>GitLab Duo flows “run unsandboxed”</td><td>“the flow runs directly with a warning message, unless the sandbox is required”</td></tr>
+          <tr><td>ACP is part of AAIF; there is a hooks standard</td><td>ACP is not an AAIF project; Zed and JetBrains are its main sponsors. No hooks standard exists</td></tr>
+          <tr><td>Cherny: gains of 10 to 20% get “wiped out” and “never bet against the model”, as one quote</td><td>Two passages about 30 minutes apart (YC video, Feb 2026); quote each with its timestamp</td></tr>
+          <tr><td>Cherny: “everyone in this room should be building … thousands of agents”</td><td>The host said it (YC Root Access, Jul 2026), and the word was “someone”</td></tr>
+          <tr><td>OpenAI coined “harness engineering”</td><td>Mitchell Hashimoto used it on 5 Feb 2026, the earliest use we found; OpenAI's post followed on 11 Feb</td></tr>
+          <tr><td>Nadella said Microsoft did not disclose the Copilot number</td><td>CFO Amy Hood said it, on the 28 Oct 2026 call</td></tr>
+          <tr><td>GitHub “placed highest on ability to execute”</td><td>Verbatim: “GitHub placed as the highest in ability to execute.” (GitHub's claim)</td></tr>
+          <tr><td>Amp: “watch your agents work step-by-step”</td><td>Verbatim: “If you have the patience to watch your agents work, you're giving them too short a leash.” (Sep 2026)</td></tr>
+          <tr><td>Kundel (OpenAI): never write your own system prompt</td><td>He advises starting with developer instructions and to “be careful” replacing the base prompt</td></tr>
+          <tr><td>Cognition runs every model in its home harness</td><td>For SWE-2 it did so only where no public score exists</td></tr>
+          <tr><td>Cursor's 66% prompt cut was A/B tested</td><td>The post does not say the prompt cut was A/B tested; its A/B tests were of tool loading</td></tr>
+        </table>
+        <p class="src">Corrections recorded in the research verification passes, 4 Nov 2026</p>
+        <aside class="notes">
+          <p>The product lines were mostly true at some point. Cursor did use a semantic index
+          until July. Codex did use Landlock (a Linux kernel feature for sandboxing) until March. Pi's
+          old "will not support MCP" line and its reversal are in section 5; quote them
+          together.</p>
+          <p>On the Copilot sandbox line, use the current github.com docs and say which surface
+          you mean; the Enterprise Cloud copy of the sandbox page still shows the older
+          default.</p>
+          <p>On Cherny, people join "wiped out with
+          the next model" (at 8 minutes 26 in the YC video) to "never bet against the model" (at
+          38 minutes 37). Both passages are real, but he never said them as one sentence. The video only has
+          auto-generated captions, so treat even the separate quotes with care. On harness
+          engineering, the safe wording is "used by Mitchell Hashimoto on February 5, 2026, the
+          earliest use we found, and popularised by OpenAI and Thoughtworks that month". Don't
+          call him the inventor: a
+          July 2026 source-code study (arXiv 2609.00006) says he used it "in passing" and credits
+          LangChain's Trivedy with defining it.</p>
+          <p>These are also refuted but not on the slide: "three OpenAI engineers wrote a
+          million lines" (three engineers drove the first 1,500 or so pull requests, the team
+          grew to seven, and Codex wrote the code); Claude Code speaking ACP natively (it uses an
+          adapter); "When the judgment is the deliverable, delegating it backfires" (not on the
+          Cognition post it is attributed to); Managed Devins coordinated "through an internal
+          MCP"; Zed Delta "every thread is a git branch"; the GitHub universe changelog line
+          "lets custom apps share live sessions with VS Code"; Amplifying's "no detectable
+          public signal" in quote marks; Google's SDK and CLI harness lines credited to Logan
+          Kilpatrick (other speakers said them); and the claim that arXiv 2609.00006 searched
+          for 2025 uses of "harness engineering" and found none.</p>
+          <p>Source: research/round5-cursor-cognition.md A3, A4 and verification pass;
+          round5-openai-codex.md §5 and refuted list; round5-oss-terminal.md §6;
+          round5-copilot-architecture.md §10; round5-enterprise-harnesses.md B1, C1, C2 and
+          verification pass; round5-convergence-standards.md §8;
+          round5-philosophy-addendum.md §1.1, §2.2, §3, §6 and verification pass;
+          round5-claude-code.md verification pass; round5-philosophy-direction.md §1.5, §1.7
+          (OpenAI million-lines claim), §4;
+          round5-adoption-market.md verification pass; round5-synthesis.md §8 avoid list.</p>
+        </aside>
+      </section>
+
+      <section id="app-log">
+        <span class="eyebrow">appendix · deck log</span>
+        <h2>This version was checked against research fetched on 4 November 2026</h2>
+        <table>
+          <tr><th>Date</th><th>Change</th></tr>
+          <tr><td>5 Nov 2026</td><td>First version. Facts checked against research round 5, fetched 4 Nov 2026.</td></tr>
+        </table>
+        <p class="src">Research rounds 5 and 5b, fetched and verified 4 Nov 2026 · research/round5-synthesis.md front matter</p>
+        <aside class="notes">
+          <p>If you give this talk again, re-check before you do, and add a row here each time.</p>
+          <p>Some facts on these slides have dates attached. Jules goes read-only after November 11
+          and winds down by December 31. Atlassian's Rovo Dev Code Reviewer moves to Rovo Credits on
+          December 3. Tabnine's old CLI gets critical fixes only until December 31. OpenAI says
+          it plans to deprecate Codex Cloud (Legacy), and Google says it will remove the Agent
+          Manager from the Antigravity IDE "in an upcoming release".</p>
+          <p>The Copilot rows go stale fastest: sandbox defaults, retention and AI credit
+          pricing. Check them against the GitHub docs and changelog first.</p>
+          <p>Source: research/round5-synthesis.md front matter (fetched 2026-11-04), §6.2;
+          round5-google-amazon-jetbrains.md §1.6 (Jules, Agent Manager);
+          round5-enterprise-harnesses.md A1, A3.</p>
+        </aside>
+      </section>
+    </section>
+
+  </div>
+</div>
+
+<script src="../vendor/reveal/reveal.js"></script>
+<script src="../vendor/reveal/plugin/notes.js"></script>
+<script src="../vendor/reveal/plugin/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.05,
+    hash: true,
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    backgroundTransition: 'none',
+    pdfSeparateFragments: false,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+</script>
+</body>
+</html>

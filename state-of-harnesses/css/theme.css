@@ -1,0 +1,419 @@
+/* ==========================================================================
+   STATE OF THE HARNESS: deck theme (copied from Build Your Own Harness,
+   plus components for the landscape talk at the end of this file)
+   Plain paper: white ground, black text, one blue for emphasis.
+   Body and headings: Inter · Code and labels: JetBrains Mono
+   Fonts and reveal.js are shared with the first deck from ../vendor/.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter Var";
+  src: url("../../vendor/fonts/inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono Var";
+  src: url("../../vendor/fonts/jetbrains-mono.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #ffffff;
+  --ink: #111111;
+  --muted: #555b66;
+  --faint: #9aa1ad;
+  --line: #e3e6eb;
+  --tint: #f4f7fd;        /* panels */
+  --code-bg: #f6f8fa;
+  --blue: #1d4ed8;        /* the one highlight colour */
+  --blue-soft: #dbe5fb;
+  --red: #b42318;         /* used only for "before" and warnings */
+  --green: #18794e;       /* used only for "after" */
+
+  --body: "Inter Var", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono Var", "Cascadia Code", Consolas, monospace;
+}
+
+/* ---- ground ---- */
+html, body, .reveal-viewport { background: var(--bg); }
+.reveal { font-family: var(--body); font-size: 30px; font-weight: 400;
+  color: var(--ink); }
+.reveal ::selection { background: var(--blue-soft); }
+.reveal .slides { text-align: left; }
+
+/* ---- headings ---- */
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--body); color: var(--ink); text-transform: none;
+  letter-spacing: -0.015em; text-wrap: balance; margin: 0 0 0.5em 0;
+}
+.reveal h1 { font-size: 2.9em; font-weight: 800; line-height: 1.02; }
+.reveal h2 { font-size: 1.55em; font-weight: 750; line-height: 1.12; margin-bottom: 0.6em; }
+.reveal h3 { font-size: 1.0em; font-weight: 700; color: var(--blue); }
+.reveal p, .reveal li { line-height: 1.5; }
+.reveal p { margin: 0 0 0.7em 0; }
+.reveal strong { font-weight: 700; color: var(--ink); }
+.reveal em { font-style: normal; color: var(--blue); font-weight: 600; }
+.reveal a { color: var(--blue); text-decoration: none; border-bottom: 1px solid var(--blue-soft); }
+
+/* section label above a heading */
+.eyebrow {
+  font-family: var(--mono); font-size: 0.5em; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue);
+  margin-bottom: 1.2em; display: block;
+}
+
+/* part opener */
+.opener { border-left: 6px solid var(--blue); padding-left: 1em; }
+.opener h1 { font-size: 3.3em; }
+.opener .sub { font-size: 1.0em; color: var(--muted); max-width: 26em; line-height: 1.45; }
+.opener .sub strong { color: var(--ink); }
+
+/* ---- lists ---- */
+.reveal ul, .reveal ol { display: block; margin: 0 0 0.7em 0; }
+.reveal ul li, .reveal ol li { margin: 0.3em 0; }
+.reveal ul { list-style: none; padding-left: 1.1em; }
+.reveal ul li::before {
+  content: ""; display: inline-block; width: 0.38em; height: 0.38em;
+  background: var(--blue); margin-left: -1em; margin-right: 0.62em;
+  vertical-align: 0.18em;
+}
+.reveal ol { padding-left: 1.4em; }
+.reveal ol li::marker { color: var(--blue); font-family: var(--mono); font-weight: 600; font-size: 0.85em; }
+
+/* ---- code ---- */
+.reveal pre {
+  width: 100%; margin: 0.4em 0; box-shadow: none;
+  font-size: 0.6em; line-height: 1.5;
+  background: var(--code-bg); border: 1px solid var(--line);
+  border-left: 3px solid var(--blue);
+}
+.reveal pre code {
+  font-family: var(--mono); background: transparent; color: #1f2328;
+  padding: 0.85em 1.1em; max-height: 540px;
+}
+.reveal code {
+  font-family: var(--mono); font-size: 0.88em; color: var(--blue);
+  background: var(--code-bg); border: 1px solid var(--line);
+  padding: 0.04em 0.32em; border-radius: 3px;
+}
+.reveal pre code { border: none; }
+
+/* light syntax colours (overrides the vendored monokai) */
+.reveal .hljs { background: transparent !important; color: #1f2328; }
+.reveal .hljs-comment, .reveal .hljs-quote { color: #6e7781; }
+.reveal .hljs-keyword, .reveal .hljs-selector-tag, .reveal .hljs-literal,
+.reveal .hljs-name, .reveal .hljs-tag { color: #cf222e; }
+.reveal .hljs-string, .reveal .hljs-attr + .hljs-string { color: #0a3069; }
+.reveal .hljs-attr, .reveal .hljs-attribute, .reveal .hljs-variable,
+.reveal .hljs-template-variable { color: #0550ae; }
+.reveal .hljs-number, .reveal .hljs-symbol, .reveal .hljs-bullet { color: #0550ae; }
+.reveal .hljs-section, .reveal .hljs-title, .reveal .hljs-strong { color: #1f2328; font-weight: 700; }
+.reveal .hljs-meta, .reveal .hljs-built_in, .reveal .hljs-type { color: #8250df; }
+.reveal .hljs-code, .reveal .hljs-emphasis { color: #116329; }
+
+.filename {
+  font-family: var(--mono); font-size: 0.48em; color: var(--muted);
+  margin: 0.5em 0 -0.25em 0; letter-spacing: 0.04em;
+}
+.filename::before { content: "file  "; color: var(--blue); font-weight: 700; }
+
+/* ---- layout ---- */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1em; align-items: start; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9em; align-items: start; }
+.cols-wide-left { display: grid; grid-template-columns: 3fr 2fr; gap: 1.1em; align-items: start; }
+.cols-wide-right { display: grid; grid-template-columns: 2fr 3fr; gap: 1.1em; align-items: start; }
+
+.panel {
+  background: var(--tint); border: 1px solid var(--line);
+  padding: 0.75em 1em; margin: 0.3em 0;
+}
+.panel.blue { background: #fff; border: 2px solid var(--blue); }
+.panel h3 { margin-bottom: 0.35em; }
+.panel p:last-child, .panel ul:last-child, .panel ol:last-child { margin-bottom: 0; }
+
+.small { font-size: 0.78em; }
+.note { font-size: 0.68em; color: var(--muted); line-height: 1.45; }
+.center { text-align: center; }
+
+/* label chips */
+.chip {
+  display: inline-block; font-family: var(--mono); font-size: 0.48em;
+  letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700;
+  padding: 0.25em 0.7em; margin-right: 0.4em; vertical-align: middle;
+  border: 1.5px solid var(--blue); color: var(--blue); background: #fff;
+}
+.chip.solid { background: var(--blue); color: #fff; }
+.chip.grey { border-color: var(--faint); color: var(--muted); }
+
+/* "your turn" banner for hands-on slides */
+.yourturn {
+  display: flex; align-items: center; gap: 0.8em; flex-wrap: wrap;
+  background: var(--blue); color: #fff; padding: 0.45em 0.9em; margin-bottom: 0.9em;
+  font-family: var(--mono); font-size: 0.5em; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 700;
+}
+.yourturn .timer { margin-left: auto; }
+
+/* checkpoint: what you should see */
+.checkpoint {
+  border: 1.5px dashed var(--blue); padding: 0.5em 0.9em; margin-top: 0.6em;
+  font-size: 0.7em;
+}
+.checkpoint::before {
+  content: "Checkpoint"; display: block; font-family: var(--mono); font-size: 0.75em;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); font-weight: 700;
+  margin-bottom: 0.2em;
+}
+
+/* steps: numbered vertical procedure */
+.steps { counter-reset: step; padding-left: 0 !important; list-style: none; }
+.reveal .steps li { counter-increment: step; position: relative; padding-left: 2.1em; margin: 0.45em 0; }
+.reveal .steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 0.05em;
+  width: 1.45em; height: 1.45em; line-height: 1.45em; text-align: center;
+  background: var(--blue); color: #fff; font-family: var(--mono); font-size: 0.8em; font-weight: 700;
+  margin: 0;
+}
+
+/* ---- tables ---- */
+.reveal table { border-collapse: collapse; margin: 0.3em 0; font-size: 0.74em; width: 100%; }
+.reveal table th {
+  font-family: var(--mono); font-size: 0.78em; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--blue); font-weight: 700;
+  text-align: left; padding: 0.45em 0.7em; border-bottom: 2px solid var(--blue);
+}
+.reveal table td {
+  padding: 0.45em 0.7em; border-bottom: 1px solid var(--line);
+  vertical-align: top; line-height: 1.4;
+}
+.reveal table tr:last-child td { border-bottom: none; }
+.reveal table td:first-child { font-weight: 600; }
+
+/* ---- before / after ---- */
+.ba .before { border-left: 4px solid var(--red); }
+.ba .after { border-left: 4px solid var(--green); }
+.ba-label {
+  font-family: var(--mono); font-size: 0.5em; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.4em;
+}
+.before .ba-label { color: var(--red); }
+.after .ba-label { color: var(--green); }
+.bad { color: var(--red); }
+.good { color: var(--green); }
+
+/* ---- the quadrant ---- */
+.quad {
+  display: grid; grid-template-columns: auto 1fr 1fr; grid-template-rows: auto 1fr 1fr;
+  gap: 0; font-size: 0.8em;
+}
+.quad .axis {
+  font-family: var(--mono); font-size: 0.72em; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted); padding: 0.3em 0.6em; font-weight: 600;
+}
+.quad .axis.row { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; }
+.quad .axis.col { text-align: center; }
+.quad .cell { border: 1px solid var(--line); padding: 0.6em 0.8em; min-height: 6.5em; background: #fff; }
+.quad .cell h3 { margin: 0 0 0.25em 0; font-size: 1.15em; }
+.quad .cell p { margin: 0 0 0.3em 0; line-height: 1.38; }
+.quad .cell .harness { font-family: var(--mono); font-size: 0.82em; color: var(--blue); }
+.quad .cell.lit { background: var(--tint); border: 2px solid var(--blue); }
+
+/* ---- interactive board (quadrant sticky notes) ---- */
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; font-size: 0.58em; }
+.board .bq { border: 1px solid var(--line); background: #fff; padding: 0.5em 0.7em; min-height: 7.2em; }
+.board .bq h3 { font-size: 1.1em; margin: 0 0 0.2em 0; }
+.board .bq .hint { color: var(--muted); font-size: 0.85em; margin: 0 0 0.4em 0; }
+.board ul { margin: 0 0 0.3em 0; padding-left: 0 !important; }
+.board ul li { margin: 0.15em 0; cursor: pointer; display: inline-block;
+  background: var(--tint); border: 1px solid var(--blue-soft); padding: 0.1em 0.5em; margin-right: 0.3em; }
+.reveal .board ul li::before { display: none; }
+.board ul li:hover { text-decoration: line-through; color: var(--red); }
+.board input {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 0.95em; padding: 0.25em 0.45em;
+  border: 1px solid var(--line); background: var(--code-bg); color: var(--ink);
+}
+.board input:focus { outline: 2px solid var(--blue); }
+
+/* ---- A/B vote tally ---- */
+.tally { display: flex; gap: 1.2em; justify-content: center; margin: 0.6em 0; }
+.tally .opt { border: 2px solid var(--blue); padding: 0.4em 1.1em; text-align: center; min-width: 6em; background: #fff; }
+.tally .opt .label { font-family: var(--mono); font-size: 0.5em; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); font-weight: 700; }
+.tally .opt .count { font-size: 2.2em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tally button, .timer button, .board button {
+  font: inherit; font-family: var(--mono); font-size: 0.5em; cursor: pointer;
+  border: 1px solid var(--blue); background: #fff; color: var(--blue); padding: 0.2em 0.6em; margin: 0 0.1em;
+}
+.tally .opt button { font-size: 0.7em; padding: 0.15em 0.9em; margin-top: 0.2em; }
+.yourturn .timer button { border-color: #fff; background: transparent; color: #fff; font-size: 1em; }
+.tally button:hover, .board button:hover { background: var(--blue); color: #fff; }
+
+/* ---- series map status ---- */
+.status-today { background: var(--blue); color: #fff; }
+.reveal table tr.today td { background: var(--tint); }
+
+/* ---- prompt cards (copy these) ---- */
+.prompt {
+  font-family: var(--mono); font-size: 0.6em; line-height: 1.5;
+  background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--blue);
+  padding: 0.55em 0.9em; margin: 0.35em 0; white-space: pre-wrap;
+}
+.prompt::before {
+  content: "prompt"; display: block; color: var(--blue); font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.85em; margin-bottom: 0.15em;
+}
+
+/* blockquote: sourced quotes */
+.reveal blockquote {
+  width: 100%; box-sizing: border-box; margin: 0.5em 0; padding: 0.6em 1em; background: var(--tint);
+  border: none; border-left: 3px solid var(--blue); box-shadow: none;
+  font-style: normal; font-size: 0.8em; line-height: 1.5;
+}
+.reveal blockquote cite {
+  display: block; font-family: var(--mono); font-style: normal;
+  font-size: 0.62em; color: var(--muted); margin-top: 0.5em;
+}
+
+.kbd {
+  font-family: var(--mono); font-size: 0.8em; background: #fff;
+  border: 1px solid var(--faint); border-bottom-width: 3px; padding: 0.05em 0.45em; color: var(--ink);
+}
+.byline { font-family: var(--mono); font-size: 0.5em; color: var(--muted); letter-spacing: 0.08em; }
+.byline b { color: var(--blue); }
+
+/* ---- reveal chrome ---- */
+.reveal .progress { height: 4px; color: var(--blue); }
+.reveal .progress span { background: var(--blue); }
+.reveal .controls { color: var(--blue); }
+.reveal .slide-number {
+  font-family: var(--mono); font-size: 13px; color: var(--faint);
+  background: transparent; left: 16px; right: auto; bottom: 10px;
+}
+
+@media print {
+  html, body, .reveal-viewport { background: #fff !important; }
+  .board input, .tally button, .timer button { display: none; }
+}
+
+/* ---- "wait" callout: pause before acting ---- */
+.wait {
+  border: 3px solid var(--blue); background: #fff; padding: 0.7em 1em;
+  position: relative; margin: 0.4em 0;
+}
+.wait .wait-word {
+  font-weight: 800; font-size: 1.6em; color: var(--blue); line-height: 1;
+  letter-spacing: -0.02em; display: block; margin-bottom: 0.25em;
+}
+.wait p { margin: 0 0 0.35em 0; }
+
+/* ---- context stack: what the model reads before your prompt ---- */
+.stack { display: flex; flex-direction: column; gap: 0.22em; font-size: 0.7em; }
+.stack .layer {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  border: 1px solid var(--line); background: var(--tint); padding: 0.4em 0.8em;
+}
+.stack .layer .who { font-family: var(--mono); font-size: 0.78em; color: var(--muted); }
+.stack .layer.yours { border-color: var(--blue); background: #fff; }
+.stack .layer.yours .who { color: var(--blue); font-weight: 700; }
+.stack .layer.prompt { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 700; }
+.stack .layer.prompt .who { color: #dbe5fb; }
+
+/* board seed examples look different from items the room typed */
+.board ul li.seed { background: #fff; border-style: dashed; color: var(--muted); }
+.board .board-tools { text-align: right; margin-top: 0.3em; }
+.board .board-tools button { font-size: 0.85em; }
+
+/* single-column board (requests list) */
+.board.one { grid-template-columns: 1fr; }
+.board.one .bq { min-height: 9em; }
+
+
+/* ==========================================================================
+   Components for the landscape talk
+   ========================================================================== */
+
+/* section opener with a big number */
+.secnum { font-family: var(--mono); font-size: 0.55em; color: var(--blue);
+  letter-spacing: 0.16em; font-weight: 700; display: block; margin-bottom: 0.4em; }
+
+/* spectrum: one axis of disagreement, two poles, harnesses placed on it.
+   <div class="spectrum">
+     <div class="poles"><span>Thin</span><span>Thick</span></div>
+     <div class="track">
+       <span class="dot" style="left:8%">Pi</span> ...
+     </div>
+   </div> */
+.spectrum { margin: 0.6em 0 1.1em 0; font-size: 0.66em; }
+.spectrum .poles { display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 0.8em; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700; margin-bottom: 0.3em; }
+.spectrum .track { position: relative; height: 4.6em; border-top: 2px solid var(--ink); }
+.spectrum .track::before, .spectrum .track::after { content: ""; position: absolute; top: -0.45em;
+  width: 2px; height: 0.8em; background: var(--ink); }
+.spectrum .track::before { left: 0; } .spectrum .track::after { right: 0; }
+.spectrum .dot { position: absolute; top: 0.5em; transform: translateX(-50%);
+  white-space: nowrap; background: #fff; border: 1.5px solid var(--blue); color: var(--blue);
+  padding: 0.12em 0.5em; font-weight: 600; }
+.spectrum .dot::before { content: ""; position: absolute; left: 50%; top: -0.75em; width: 2px;
+  height: 0.6em; background: var(--blue); }
+.spectrum .dot.low { top: 2.4em; }
+.spectrum .dot.low::before { top: -2.65em; height: 2.5em; }
+.spectrum .dot.us { background: var(--blue); color: #fff; }
+
+/* the loop diagram: model -> tool call -> harness runs it -> result -> model */
+.loop { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.6em;
+  font-size: 0.86em; margin: 0.4em 0; }
+.loop .node { border: 2px solid var(--ink); padding: 0.7em 0.9em; text-align: center; background: #fff; }
+.loop .node.model { border-color: var(--blue); color: var(--blue); font-weight: 700; }
+.loop .node small { display: block; color: var(--muted); font-weight: 400; font-size: 0.75em; margin-top: 0.2em; }
+.loop .arrows { font-family: var(--mono); color: var(--blue); text-align: center; line-height: 1.6; font-size: 0.85em; }
+
+/* ring of layers around the loop */
+.rings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35em; font-size: 0.74em; }
+.rings div { border: 1px solid var(--line); background: var(--tint); padding: 0.45em 0.6em; }
+.rings div b { display: block; color: var(--blue); font-family: var(--mono); font-size: 0.8em;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.15em; }
+
+/* timeline: dated events in a row or column */
+.timeline { list-style: none; padding-left: 0 !important; font-size: 0.74em;
+  border-left: 2px solid var(--blue); margin-left: 0.4em; }
+.reveal .timeline li { padding-left: 1em; margin: 0.35em 0; position: relative; }
+.reveal .timeline li::before { content: ""; position: absolute; left: -0.42em; top: 0.5em;
+  width: 0.7em; height: 0.7em; background: var(--blue); margin: 0; border-radius: 50%; }
+.timeline .when { font-family: var(--mono); color: var(--blue); font-weight: 700; margin-right: 0.6em; }
+
+/* quote pair: then vs now, or camp A vs camp B */
+.qpair { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
+.qpair > div { display: flex; flex-direction: column; }
+.qpair blockquote { margin: 0; flex: 1; box-sizing: border-box; }
+.qpair .label { font-family: var(--mono); font-size: 0.5em; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--blue); font-weight: 700; display: block; margin-bottom: 0.4em; }
+
+/* big number callout */
+.big { font-size: 3.2em; font-weight: 800; line-height: 1; color: var(--blue);
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.big-label { font-size: 0.7em; color: var(--muted); margin-top: 0.3em; line-height: 1.4; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; margin: 0.5em 0; }
+.stats .stat { border-top: 3px solid var(--blue); padding-top: 0.5em; }
+
+/* landscape map: groups of harness chips */
+.map { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5em; font-size: 0.74em; }
+.map .group { border: 1px solid var(--line); padding: 0.5em 0.75em; background: #fff; }
+.map .group h3 { margin: 0 0 0.3em 0; font-size: 1.05em; }
+.map .group p { margin: 0; color: var(--muted); font-size: 0.85em; }
+.tag { display: inline-block; border: 1px solid var(--line); background: var(--tint);
+  padding: 0.05em 0.45em; margin: 0.12em 0.15em 0.12em 0; font-weight: 600; color: var(--ink); }
+.tag.open { border-color: var(--green); color: var(--green); background: #fff; }
+.tag.gone { color: var(--faint); text-decoration: line-through; background: #fff; }
+
+/* source line at the foot of a slide */
+.reveal .src { display: block; margin: 1.6em 0 0 0; font-family: var(--mono);
+  font-size: 0.44em; line-height: 1.5; color: var(--faint); letter-spacing: 0.02em; }
+
+/* table cell emphasis */
+.reveal table td.hl { background: var(--tint); }
+.reveal table.compact { font-size: 0.56em; }
+.reveal table.compact td, .reveal table.compact th { padding: 0.3em 0.5em; }

@@ -137,6 +137,44 @@ the Part 1 deck in `../build-your-own-harness/`.
 | [round3-hooks-context-memory.md](round3-hooks-context-memory.md) | Hook formats and events for Local vs Copilot sessions, blocking `git push` and protected paths (tested scripts), what hooks can't see, PostToolUse/SessionStart/Stop uses, what VS Code loads before your prompt, the two memory systems |
 | [round3-customizations-and-automation.md](round3-customizations-and-automation.md) | Prompt files vs skills vs custom agents, example skill/prompt/agent files, running agents in parallel, cloud agent automations and Agentic Workflows, what goes in instructions, AGENTS.md vs copilot-instructions.md, personal instruction files |
 
+## Round 4 — 2026-11-04 (writing that doesn't read as AI)
+
+Same tags as round 3, plus **[P\*]** for a primary source whose quote came
+back through a page summariser (check wording before it goes on a slide).
+Gathered to back the house writing rules for both decks.
+
+| File | What it covers |
+|---|---|
+| [round4-ai-writing-patterns.md](round4-ai-writing-patterns.md) | Catalog of AI writing tells by category and model era (Wikipedia, Graphite, Pangram); the 2026 em-dash flip; measured tells of Claude Opus 5/5.5, GPT-6 and Gemini 3.1; the studies (Kobak excess vocabulary, Liang, Juzek & Ward, Reinhart PNAS, Russell ACL 2025 expert detectors, detector bias against plain writing, "delve" rising then falling); remedies from Orwell, federal plain language, GOV.UK, Pinker; vendor prompting advice on style; jargon research (definitions don't fix it); a 15-step revision checklist and a prompting recipe |
+
+## Round 5 — 2026-11-04 (the state of coding harnesses)
+
+Gathered for the *State of the Harness* deck (`../state-of-harnesses/`). Same
+tags as rounds 3 and 4. Ten profile files were written by parallel research
+agents. Each was then checked against primary sources by a separate fact-checker,
+whose "Verification pass" section at the end of the file overrides the body.
+A completeness critic found gaps, and four more files filled them, also verified.
+Start with the synthesis: it carries every file's tags, lists conflicts between
+files, and ends with presentation candidates and an "avoid on slides" list.
+
+| File | What it covers |
+|---|---|
+| [round5-synthesis.md](round5-synthesis.md) | **Start here.** Landscape tables, the common core, ten axes where harnesses differ (with builders' quotes), philosophies by family, dated 2026 timeline, what vendors say is next, does the harness change outcomes, deployment table, conflicts, slide candidates, claims to avoid |
+| [round5-claude-code.md](round5-claude-code.md) | Claude Code: loop, tools being removed, CLAUDE.md and memory, auto mode and its published miss rate, hooks, mods, philosophy (Cherny, Wu, Mann), 6-month changelog |
+| [round5-openai-codex.md](round5-openai-codex.md) | Codex: one Rust core behind every surface, code mode (JS `exec`), `apply_patch` grammar, sandboxing, merge into ChatGPT, end of the -Codex model line, prompt contents |
+| [round5-copilot-architecture.md](round5-copilot-architecture.md) | Copilot as a harness family: the Microsoft Copilot harness, Local vs Copilot harness in VS Code, per-model prompts and edit tools in the open code, third-party agents, Rust port, Fusion |
+| [round5-cursor-cognition.md](round5-cursor-cognition.md) | Cursor (now SpaceX) and Cognition (Devin, Devin Desktop ex-Windsurf): own models, dropping the embeddings index, coordinator/worker designs, VM isolation |
+| [round5-google-amazon-jetbrains.md](round5-google-amazon-jetbrains.md) | Antigravity and Gemini CLI, Jules shutdown, Kiro (specs, Cedar, Lean proofs), Q Developer folded into Kiro, JetBrains Junie and Air, ACP |
+| [round5-oss-terminal.md](round5-oss-terminal.md) | OpenCode, Pi, Goose, Aider, Crush, Qwen Code, Kimi Code: loops, prompts, edit tools, stars, safety defaults |
+| [round5-oss-ide-extensions.md](round5-oss-ide-extensions.md) | Cline, Roo Code (shut), Kilo Code, Continue (to Cursor), Zed and ACP |
+| [round5-platforms-research.md](round5-platforms-research.md) | OpenHands, SWE-agent and mini-swe-agent, Amp, Factory, Augment, Warp, DeepSeek Harness |
+| [round5-convergence-standards.md](round5-convergence-standards.md) | Standards (AGENTS.md, MCP, Skills, ACP, AAIF), edit formats, grep vs index, system prompt sizes, the shared loop, academic taxonomies |
+| [round5-philosophy-direction.md](round5-philosophy-direction.md) | Defining essays and talks, axes of disagreement, 2026 shifts, survey data |
+| [round5-harness-effect-evidence.md](round5-harness-effect-evidence.md) | Same model, different harness: papers, leaderboards, vendor studies; the 45.9% vs 55.4% misquote; what a presenter can honestly claim |
+| [round5-adoption-market.md](round5-adoption-market.md) | Gartner MQ, Amplifying public-output index, Microsoft earnings, Octoverse, Stack Overflow, JetBrains, DORA, Thoughtworks Radar |
+| [round5-enterprise-harnesses.md](round5-enterprise-harnesses.md) | Tabnine, GitLab Duo, Rovo Dev, IBM Bob, Qoder, Replit, TRAE, Mistral Vibe, Grok Build; deployment and data comparison for a bank |
+| [round5-philosophy-addendum.md](round5-philosophy-addendum.md) | Primary-sourced philosophy quotes by family, filling gaps in the profiles |
+
 ## Where round 2 changes or contradicts round 1
 
 1. **OpenAI's frontier is now GPT-6** (Astra, Sol/6.1 Sol, Luna). The URL behind
