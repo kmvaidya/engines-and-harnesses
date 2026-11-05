@@ -175,6 +175,15 @@ files, and ends with presentation candidates and an "avoid on slides" list.
 | [round5-enterprise-harnesses.md](round5-enterprise-harnesses.md) | Tabnine, GitLab Duo, Rovo Dev, IBM Bob, Qoder, Replit, TRAE, Mistral Vibe, Grok Build; deployment and data comparison for a bank |
 | [round5-philosophy-addendum.md](round5-philosophy-addendum.md) | Primary-sourced philosophy quotes by family, filling gaps in the profiles |
 
+## Round 6 (2026-11-05): philosophies from the makers' own docs, and documentation gaps
+
+Two files, checked against live pages on 2026-11-05. Where they conflict with round 5, round 6 wins.
+
+| File | What it covers |
+|---|---|
+| [round6-philosophy-sources.md](round6-philosophy-sources.md) | Each maker's harness philosophy from its own docs, blogs and READMEs (GitHub/Microsoft, Anthropic, OpenAI, Google, Cursor, Cognition, Amp, Factory, Kiro, JetBrains, open source, enterprise vendors), with shipped matches, tensions, rejections and verdicts on the v3 deck wording. Corrects the Claude Code "thin harness" and Ben Mann framing, Cline's shipped defaults, Zed's defaults |
+| [round6-doc-gaps.md](round6-doc-gaps.md) | Items the deck called undocumented: Copilot assisted permissions, semantic search "online sessions", code review Max, rubber duck, dynamic workflows and /fleet limits, Copilot harness tools, local sandbox, Legacy-Bench harness, edit formats, published AI-approver error rates (Codex, Cursor), the closed runtime |
+
 ## Where round 2 changes or contradicts round 1
 
 1. **OpenAI's frontier is now GPT-6** (Astra, Sol/6.1 Sol, Luna). The URL behind

@@ -519,3 +519,54 @@ html, body, .reveal-viewport { background: var(--bg); }
 .honest h3 { font-size: 1.05em; margin: 0 0 0.4em 0; }
 .honest > div.weak h3 { color: #b45309; } .honest > div:first-child h3 { color: var(--green); }
 .honest ul { margin: 0; } .honest li { margin: 0.25em 0; line-height: 1.4; }
+
+/* ==========================================================================
+   v4 landscape components: camps per design question, maker cards,
+   a whole-field matrix, and timeline lanes
+   ========================================================================== */
+/* camps: one column per answer to a design question */
+.camps { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 0.5em; font-size: 0.66em; margin: 0.2em 0 0.4em 0; }
+.camp { border: 1px solid var(--line); border-top: 3px solid var(--ink); background: #fff; padding: 0.5em 0.7em; display: flex; flex-direction: column; }
+.camp h3 { font-size: 1.08em; color: var(--ink); margin: 0 0 0.3em 0; line-height: 1.2; }
+.camp .who { margin: 0 0 0.35em 0; line-height: 1.15; }
+.camp .who .tag { font-size: 0.9em; }
+.camp .who .sub { display: block; font-family: var(--mono); font-size: 0.72em; color: var(--muted); letter-spacing: 0.04em; margin: 0.2em 0 0 0; }
+.camp p { margin: 0 0 0.35em 0; line-height: 1.38; }
+.camp .why { color: var(--ink); }
+.camp .why cite { display: block; font-style: normal; font-family: var(--mono); font-size: 0.78em; color: var(--muted); margin-top: 0.1em; }
+.camp .cost { color: var(--muted); margin-top: auto; padding-top: 0.3em; border-top: 1px dashed var(--line); }
+.camp .cost b { color: var(--ink); }
+.camp.us { border-top-color: var(--blue); }
+.camp.us h3 { color: var(--blue); }
+
+/* maker cards: one maker's stated philosophy, from its own documentation */
+.makers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55em; font-size: 0.64em; }
+.maker { border: 1px solid var(--line); border-top: 3px solid var(--ink); padding: 0.5em 0.75em; background: #fff; display: flex; flex-direction: column; }
+.maker.us { border-top-color: var(--blue); background: var(--tint); }
+.maker h3 { margin: 0 0 0.05em 0; font-size: 1.15em; color: var(--ink); }
+.maker.us h3 { color: var(--blue); }
+.maker .prod { font-family: var(--mono); font-size: 0.75em; color: var(--muted); letter-spacing: 0.04em; margin: 0 0 0.4em 0; }
+.maker .bet { font-weight: 650; line-height: 1.35; margin: 0 0 0.4em 0; }
+.maker blockquote { font-size: 0.95em; margin: 0 0 0.45em 0; padding: 0.35em 0.6em; }
+.maker blockquote cite { font-size: 0.78em; }
+.maker p { margin: 0 0 0.3em 0; line-height: 1.38; }
+.maker p b { font-family: var(--mono); font-size: 0.78em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-right: 0.35em; }
+.maker p.tension b { color: #b45309; }
+
+/* whole-field matrix: products as columns, questions as rows */
+.reveal table.field { font-size: 0.56em; table-layout: fixed; width: 100%; }
+.reveal table.field th, .reveal table.field td { padding: 0.32em 0.45em; line-height: 1.25; vertical-align: top; }
+.reveal table.field th:first-child, .reveal table.field td:first-child { width: 15%; font-weight: 650; }
+.reveal table.field .us { background: var(--tint); }
+.reveal table.field th.us { color: var(--blue); }
+.reveal table.field td.nd { color: var(--faint); }
+
+/* timeline lanes: one row per trend, one column per part of 2026 */
+.lanes { display: grid; grid-template-columns: 11.5em repeat(4, 1fr); font-size: 0.62em; border-top: 2px solid var(--ink); margin: 0.2em 0 0.4em 0; }
+.lanes > div { border-bottom: 1px solid var(--line); padding: 0.32em 0.4em; line-height: 1.2; }
+.lanes .hd { font-family: var(--mono); font-size: 0.82em; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.lanes .trend { font-weight: 650; }
+.lanes .ev { display: inline-block; font-weight: 600; font-size: 0.92em; border: 1px solid var(--line); background: var(--tint); padding: 0.06em 0.35em; margin: 0.1em 0.15em 0.1em 0; }
+.lanes .ev small { font-family: var(--mono); font-weight: 400; font-size: 0.85em; color: var(--muted); margin-left: 0.2em; }
+.lanes .ev.us { background: var(--blue); border-color: var(--blue); color: #fff; }
+.lanes .ev.us small { color: #dbe5fb; }
