@@ -29,17 +29,28 @@ starts with the plain idea and then goes into detail.
 | # | Section | Minutes | What it covers |
 |---|---|---|---|
 | | Title and plan | 1.5 | The seven questions the talk answers |
-| 1 | What a harness is | 5 | Agent mode against autocomplete; the four places Copilot's agent runs, on one engine; the loop; Copilot's parts around it; when changing the harness changes results |
-| 2 | Who builds harnesses | 5 | Four kinds of builder (Copilot's is a platform owner), how open each engine is, 2026 sales and shutdowns, usage |
-| 3 | What they all share | 4 | The same few tools, features copied within months, the open file formats Copilot reads |
-| 4 | Where they disagree | 11 | Six design choices on one overview slide, then one slide each: Copilot's choice first, then the opposite choice and the evidence |
-| 5 | What each maker believes | 4.5 | Platform owners (Copilot's makers) first, then labs, agent companies and open source, each in its own words |
+| 1 | What a harness is | 7 | Agent mode against autocomplete; where Copilot's agent runs, on one engine; the loop, with a click-through **demo** of one session; Copilot's parts; a **demo** of working space filling and being summarised; when changing the harness changes results |
+| 2 | Who builds harnesses | 4 | Four kinds of builder, how open each engine is, usage |
+| 3 | What they all share | 3 | The same few tools; the open file formats Copilot reads |
+| 4 | Where they disagree | 13 | Six design choices on one overview slide, then one slide each, with **demos** for search, edit formats (find and replace failing on an ambiguous match) and safety layers |
+| 5 | What each maker believes | 4.5 | Platform owners (Copilot's makers) first, then labs, agent companies and open source |
 | 6 | Where it is heading | 3 | Agents that start without a prompt, the review bottleneck, a legacy-code benchmark |
-| 7 | What to do | 4 | Questions for our platform team (sandbox, surfaces, models, retention, billing); five habits and how to do each in Copilot |
+| 7 | What to do | 5 | Questions for our platform team; five habits; what evidence is solid and what is weak |
 
-About 38 minutes. The appendix is never presented: it holds the full comparison
-tables (Copilot first, or as a reference row), system prompts, deployment notes
-for a bank, the source map, and claims not to repeat.
+About 41 minutes with the in-deck demos. Two **optional live embeds** add about a
+minute each: the SWE-bench "Bash Only" leaderboard (section 1) and the agents.md site
+(section 3). They need internet access; skip them if the room's network blocks them.
+
+**Demos.** The step-through and working-space slides advance with the normal
+next key (they use fragments). The search, edit and safety widgets are clicked
+on the slide; their data lives in `js/demos.js` and runs offline. Each is
+labelled as an illustration on screen. Bank-specific answers to the
+platform-team slide are deliberately not in this repo.
+
+The appendix is never presented: it holds the full comparison tables (Copilot
+first, or as a reference row), system prompts, 2026 sales and shutdowns,
+features copied between tools, deployment notes for a bank, the source map,
+and claims not to repeat.
 
 The deck was checked by three fresh-reader agents (a junior developer, a senior
 architect and a QA lead from a mainframe background, none of them AI
